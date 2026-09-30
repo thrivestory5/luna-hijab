@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import Lenis from 'lenis';
 import { PRODUCTS, Product } from './data/products';
-import { fetchCatalogProducts } from './lib/supabase';
+import { AdminProfile, CustomerProfile, fetchCatalogProducts } from './lib/supabase';
 import { Navbar } from './components/Navbar';
 import { HeroSection } from './components/HeroSection';
 import { AtelierHouses } from './components/AtelierHouses';
@@ -12,9 +12,23 @@ import { ProductModal } from './components/ProductModal';
 import { CartDrawer, CartItem } from './components/CartDrawer';
 import { ConciergeModal } from './components/ConciergeModal';
 import { Footer } from './components/Footer';
+import { CustomerAuthPage } from './components/CustomerAuthPage';
+import { AdminPortalPage } from './components/AdminPortalPage';
+
+const normalizeRoute = (pathname: string): '/' | '/login' | '/admlog' | '/admin' => {
+  const clean = pathname.replace(/\/+$/, '').toLowerCase() || '/';
+  if (clean === '/login') return '/login';
+  if (clean === '/admlog') return '/admlog';
+  if (clean === '/admin') return '/admin';
+  return '/';
+};
 
 export function App() {
+  const [currentRoute, setCurrentRoute] = useState<'/' | '/login' | '/admlog' | '/admin'>('/');
   const [catalogProducts, setCatalogProducts] = useState<Product[]>(PRODUCTS);
+  const [currentUser, setCurrentUser] = useState<CustomerProfile | null>(null);
+  const [adminUser, setAdminUser] = useState<AdminProfile | null>(null);
+
   const [activeBrand, setActiveBrand] = useState<string>('ALL');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
@@ -23,6 +37,25 @@ export function App() {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [wishlist, setWishlist] = useState<number[]>([]);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  // Sync URL pathname & browser history navigation
+  useEffect(() => {
+    setCurrentRoute(normalizeRoute(window.location.pathname));
+    const handlePopState = () => {
+      setCurrentRoute(normalizeRoute(window.location.pathname));
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
+
+  const handleNavigate = useCallback((path: string) => {
+    const target = normalizeRoute(path);
+    if (window.location.pathname !== target) {
+      window.history.pushState({}, '', target);
+    }
+    setCurrentRoute(target);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, []);
 
   // Sync live catalog from Supabase "luna Project" database
   useEffect(() => {
@@ -62,14 +95,18 @@ export function App() {
     };
   }, []);
 
-  // Hydration-safe localStorage restore
+  // Hydration-safe session & cart restore
   useEffect(() => {
     try {
       const savedCart = window.localStorage.getItem('maison_luna_cart_v1');
       if (savedCart) setCartItems(JSON.parse(savedCart));
       const savedWish = window.localStorage.getItem('maison_luna_wishlist_v1');
       if (savedWish) setWishlist(JSON.parse(savedWish));
-    } catch (err) {
+      const savedCustomer = window.localStorage.getItem('maison_luna_customer_v1');
+      if (savedCustomer) setCurrentUser(JSON.parse(savedCustomer));
+      const savedAdmin = window.sessionStorage.getItem('maison_luna_admin_v1');
+      if (savedAdmin) setAdminUser(JSON.parse(savedAdmin));
+    } catch {
       // Ignore storage errors
     }
   }, []);
@@ -77,7 +114,7 @@ export function App() {
   useEffect(() => {
     try {
       window.localStorage.setItem('maison_luna_cart_v1', JSON.stringify(cartItems));
-    } catch (err) {
+    } catch {
       // Ignore quota errors
     }
   }, [cartItems]);
@@ -85,7 +122,7 @@ export function App() {
   useEffect(() => {
     try {
       window.localStorage.setItem('maison_luna_wishlist_v1', JSON.stringify(wishlist));
-    } catch (err) {
+    } catch {
       // Ignore quota errors
     }
   }, [wishlist]);
@@ -95,6 +132,51 @@ export function App() {
     setTimeout(() => {
       setToastMessage((prev) => (prev === msg ? null : prev));
     }, 2400);
+  }, []);
+
+  const handleCustomerAuthSuccess = useCallback(
+    (profile: CustomerProfile) => {
+      setCurrentUser(profile);
+      try {
+        window.localStorage.setItem('maison_luna_customer_v1', JSON.stringify(profile));
+      } catch {
+        // Ignore storage errors
+      }
+      showToast(`Selamat datang, ${profile.nama}`);
+    },
+    [showToast]
+  );
+
+  const handleCustomerLogout = useCallback(() => {
+    setCurrentUser(null);
+    try {
+      window.localStorage.removeItem('maison_luna_customer_v1');
+    } catch {
+      // Ignore storage errors
+    }
+    showToast('Anda telah keluar dari akun member');
+  }, [showToast]);
+
+  const handleAdminLoginSuccess = useCallback(
+    (admin: AdminProfile) => {
+      setAdminUser(admin);
+      try {
+        window.sessionStorage.setItem('maison_luna_admin_v1', JSON.stringify(admin));
+      } catch {
+        // Ignore storage errors
+      }
+      showToast(`Login Admin: ${admin.username}`);
+    },
+    [showToast]
+  );
+
+  const handleAdminLogout = useCallback(() => {
+    setAdminUser(null);
+    try {
+      window.sessionStorage.removeItem('maison_luna_admin_v1');
+    } catch {
+      // Ignore storage errors
+    }
   }, []);
 
   const handleToggleWishlist = useCallback(
@@ -167,6 +249,32 @@ export function App() {
 
   const totalCartCount = cartItems.reduce((sum, i) => sum + i.quantity, 0);
 
+  // Route: /admlog or /admin
+  if (currentRoute === '/admlog' || currentRoute === '/admin') {
+    return (
+      <AdminPortalPage
+        route={currentRoute}
+        adminUser={adminUser}
+        products={catalogProducts}
+        onAdminLoginSuccess={handleAdminLoginSuccess}
+        onAdminLogout={handleAdminLogout}
+        onNavigate={handleNavigate}
+      />
+    );
+  }
+
+  // Route: /login (Customer Login & Registration)
+  if (currentRoute === '/login') {
+    return (
+      <CustomerAuthPage
+        currentUser={currentUser}
+        onAuthSuccess={handleCustomerAuthSuccess}
+        onLogout={handleCustomerLogout}
+        onBackToStore={() => handleNavigate('/')}
+      />
+    );
+  }
+
   return (
     <div className="min-h-screen bg-alabaster text-obsidian selection:bg-cashmere">
       {/* Subtle Minimal Toast */}
@@ -180,10 +288,12 @@ export function App() {
         cartCount={totalCartCount}
         wishlistCount={wishlist.length}
         activeBrand={activeBrand}
+        currentUser={currentUser}
         onSelectBrand={setActiveBrand}
         onOpenCart={() => setCartOpen(true)}
         onOpenSearch={handleOpenSearch}
         onOpenContact={() => setConciergeOpen(true)}
+        onNavigate={handleNavigate}
       />
 
       <main>

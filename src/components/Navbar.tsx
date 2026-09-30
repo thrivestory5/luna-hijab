@@ -1,25 +1,30 @@
 import React, { useEffect, useState } from 'react';
-import { Menu, X, Search, Heart, ShoppingBag, Sparkles } from 'lucide-react';
+import { Menu, X, Search, Heart, ShoppingBag, Sparkles, User } from 'lucide-react';
 import { BRAND_ASSETS } from '../data/products';
+import { CustomerProfile } from '../lib/supabase';
 
 interface NavbarProps {
   cartCount: number;
   wishlistCount: number;
   activeBrand: string;
+  currentUser: CustomerProfile | null;
   onSelectBrand: (brand: string) => void;
   onOpenCart: () => void;
   onOpenSearch: () => void;
   onOpenContact: () => void;
+  onNavigate: (path: string) => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
   cartCount,
   wishlistCount,
   activeBrand,
+  currentUser,
   onSelectBrand,
   onOpenCart,
   onOpenSearch,
   onOpenContact,
+  onNavigate,
 }) => {
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -161,6 +166,40 @@ export const Navbar: React.FC<NavbarProps> = ({
                   {cartCount}
                 </span>
               </button>
+
+              {/* User Profile Photo / Login Button to the Right of Bag Button */}
+              {currentUser ? (
+                <button
+                  type="button"
+                  onClick={() => onNavigate('/login')}
+                  title={`${currentUser.nama} (${currentUser.email})`}
+                  aria-label="Profil Member"
+                  className="w-9 h-9 rounded-full overflow-hidden border-2 border-champagne bg-travertine flex items-center justify-center shadow-xs hover:scale-105 transition-transform shrink-0"
+                >
+                  {currentUser.foto_url ? (
+                    <img
+                      src={currentUser.foto_url}
+                      alt={currentUser.nama}
+                      className="w-full h-full object-cover object-center"
+                    />
+                  ) : (
+                    <span className="font-serif text-xs font-semibold text-obsidian">
+                      {currentUser.nama.charAt(0).toUpperCase()}
+                    </span>
+                  )}
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => onNavigate('/login')}
+                  title="Login / Register Member"
+                  aria-label="Login Member"
+                  className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-alabaster hover:bg-travertine border border-obsidian/15 text-[10.5px] uppercase tracking-[0.18em] text-obsidian transition-colors"
+                >
+                  <User className="w-3.5 h-3.5 text-brass" />
+                  <span className="hidden sm:inline">Login</span>
+                </button>
+              )}
 
               {/* Mobile Hamburger */}
               <button

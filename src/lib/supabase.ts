@@ -10,6 +10,57 @@ const SUPABASE_ANON_KEY =
 
 export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+export interface CustomerProfile {
+  id: string;
+  nama: string;
+  email: string;
+  alamat: string;
+  provinsi: string;
+  kota_kabupaten: string;
+  kecamatan: string;
+  kelurahan_desa: string;
+  kode_pos: string;
+  nomer_whatsapp: string;
+  foto_url: string | null;
+  created_at: string;
+}
+
+export interface AdminProfile {
+  id: string;
+  username: string;
+  email: string | null;
+  full_name: string;
+  created_at: string;
+}
+
+export interface AdminOrderRecord {
+  id: string;
+  items: Array<{
+    productId: number;
+    sku: string;
+    name: string;
+    variant: string;
+    size: string;
+    price: number;
+    quantity: number;
+  }>;
+  total_amount: number;
+  formatted_total: string;
+  channel: string;
+  created_at: string;
+}
+
+export interface AdminInquiryRecord {
+  id: string;
+  full_name: string;
+  whatsapp_phone: string;
+  preferred_house: string;
+  preferred_date: string | null;
+  notes: string | null;
+  status: string;
+  created_at: string;
+}
+
 interface DbProductRow {
   id: number;
   sku: string;
@@ -97,4 +148,180 @@ export async function recordCheckoutOrder(payload: {
   });
 
   return !error;
+}
+
+/**
+ * Resize image client-side and upload to Supabase Storage `avatars` bucket
+ */
+export async function uploadCustomerAvatar(file: File): Promise<string> {
+  const compressedDataUrl = await new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const maxDim = 320;
+        let w = img.width;
+        let h = img.height;
+        if (w > h) {
+          if (w > maxDim) {
+            h = Math.round((h * maxDim) / w);
+            w = maxDim;
+          }
+        } else if (h > maxDim) {
+          w = Math.round((w * maxDim) / h);
+          h = maxDim;
+        }
+        canvas.width = w;
+        canvas.height = h;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+          resolve(reader.result as string);
+          return;
+        }
+        ctx.drawImage(img, 0, 0, w, h);
+        resolve(canvas.toDataURL('image/jpeg', 0.85));
+      };
+      img.onerror = () => reject(new Error('Invalid image file'));
+      img.src = reader.result as string;
+    };
+    reader.onerror = () => reject(new Error('Failed to read file'));
+    reader.readAsDataURL(file);
+  });
+
+  try {
+    const res = await fetch(compressedDataUrl);
+    const blob = await res.blob();
+    const fileName = `avatar-${Date.now()}-${Math.random().toString(36).slice(2, 8)}.jpg`;
+    const { error: uploadErr } = await supabase.storage
+      .from('avatars')
+      .upload(fileName, blob, { contentType: 'image/jpeg', upsert: false });
+
+    if (!uploadErr) {
+      const { data } = supabase.storage.from('avatars').getPublicUrl(fileName);
+      if (data?.publicUrl) {
+        return data.publicUrl;
+      }
+    }
+  } catch {
+    // Fallback to compressed data URL if storage upload is unavailable
+  }
+
+  return compressedDataUrl;
+}
+
+export async function registerCustomerAccount(input: {
+  nama: string;
+  email: string;
+  password: string;
+  alamat: string;
+  provinsi: string;
+  kota_kabupaten: string;
+  kecamatan: string;
+  kelurahan_desa: string;
+  kode_pos: string;
+  nomer_whatsapp: string;
+  foto_url?: string | null;
+}): Promise<{ data?: CustomerProfile; error?: string }> {
+  const { data, error } = await supabase.rpc('register_customer', {
+    p_nama: input.nama,
+    p_email: input.email,
+    p_password: input.password,
+    p_alamat: input.alamat,
+    p_provinsi: input.provinsi,
+    p_kota_kabupaten: input.kota_kabupaten,
+    p_kecamatan: input.kecamatan,
+    p_kelurahan_desa: input.kelurahan_desa,
+    p_kode_pos: input.kode_pos,
+    p_nomer_whatsapp: input.nomer_whatsapp,
+    p_foto_url: input.foto_url || null,
+  });
+
+  if (error) {
+    if (error.message.includes('EMAIL_ALREADY_EXISTS')) {
+      return { error: 'Email sudah terdaftar. Silakan masuk menggunakan akun Anda.' };
+    }
+    if (error.message.includes('INVALID_EMAIL_FORMAT')) {
+      return { error: 'Format email tidak valid.' };
+    }
+    return { error: 'Gagal mendaftarkan akun. Silakan periksa kembali data Anda.' };
+  }
+
+  return { data: data as CustomerProfile };
+}
+
+export async function loginCustomerAccount(
+  email: string,
+  password: string
+): Promise<{ data?: CustomerProfile; error?: string }> {
+  const { data, error } = await supabase.rpc('login_customer', {
+    p_email: email,
+    p_password: password,
+  });
+
+  if (error || !data) {
+    return { error: 'Email atau password salah. Silakan coba kembali.' };
+  }
+
+  return { data: data as CustomerProfile };
+}
+
+export async function updateCustomerAvatar(
+  customerId: string,
+  email: string,
+  fotoUrl: string
+): Promise<{ data?: CustomerProfile; error?: string }> {
+  const { data, error } = await supabase.rpc('update_customer_photo', {
+    p_customer_id: customerId,
+    p_email: email,
+    p_foto_url: fotoUrl,
+  });
+
+  if (error || !data) {
+    return { error: 'Gagal memperbarui foto profil.' };
+  }
+
+  return { data: data as CustomerProfile };
+}
+
+export async function loginAdminAccount(
+  identifier: string,
+  password: string
+): Promise<{ data?: AdminProfile; error?: string }> {
+  const { data, error } = await supabase.rpc('login_admin', {
+    p_identifier: identifier,
+    p_password: password,
+  });
+
+  if (error || !data) {
+    return { error: 'Kredensial admin tidak valid atau belum terdaftar di database.' };
+  }
+
+  return { data: data as AdminProfile };
+}
+
+export async function fetchAdminDashboardData(adminId: string): Promise<{
+  customers: CustomerProfile[];
+  orders: AdminOrderRecord[];
+  inquiries: AdminInquiryRecord[];
+} | null> {
+  const { data, error } = await supabase.rpc('get_admin_dashboard_data', {
+    p_admin_id: adminId,
+  });
+
+  if (error || !data) {
+    return null;
+  }
+
+  const parsed = data as {
+    customers?: CustomerProfile[];
+    orders?: AdminOrderRecord[];
+    inquiries?: AdminInquiryRecord[];
+  };
+
+  return {
+    customers: Array.isArray(parsed.customers) ? parsed.customers : [],
+    orders: Array.isArray(parsed.orders) ? parsed.orders : [],
+    inquiries: Array.isArray(parsed.inquiries) ? parsed.inquiries : [],
+  };
 }
