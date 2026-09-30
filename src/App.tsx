@@ -34,15 +34,22 @@ export function App() {
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [cartOpen, setCartOpen] = useState<boolean>(false);
   const [conciergeOpen, setConciergeOpen] = useState<boolean>(false);
+  const [authModalOpen, setAuthModalOpen] = useState<boolean>(false);
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [wishlist, setWishlist] = useState<number[]>([]);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   // Sync URL pathname & browser history navigation
   useEffect(() => {
-    setCurrentRoute(normalizeRoute(window.location.pathname));
+    const initial = normalizeRoute(window.location.pathname);
+    setCurrentRoute(initial);
+    if (initial === '/login') {
+      setAuthModalOpen(true);
+    }
     const handlePopState = () => {
-      setCurrentRoute(normalizeRoute(window.location.pathname));
+      const next = normalizeRoute(window.location.pathname);
+      setCurrentRoute(next);
+      setAuthModalOpen(next === '/login');
     };
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
@@ -50,11 +57,23 @@ export function App() {
 
   const handleNavigate = useCallback((path: string) => {
     const target = normalizeRoute(path);
+    if (target === '/login') {
+      setAuthModalOpen(true);
+      return;
+    }
     if (window.location.pathname !== target) {
       window.history.pushState({}, '', target);
     }
     setCurrentRoute(target);
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, []);
+
+  const handleCloseAuthModal = useCallback(() => {
+    setAuthModalOpen(false);
+    if (window.location.pathname.toLowerCase().startsWith('/login')) {
+      window.history.pushState({}, '', '/');
+      setCurrentRoute('/');
+    }
   }, []);
 
   // Sync live catalog from Supabase "luna Project" database
@@ -263,18 +282,6 @@ export function App() {
     );
   }
 
-  // Route: /login (Customer Login & Registration)
-  if (currentRoute === '/login') {
-    return (
-      <CustomerAuthPage
-        currentUser={currentUser}
-        onAuthSuccess={handleCustomerAuthSuccess}
-        onLogout={handleCustomerLogout}
-        onBackToStore={() => handleNavigate('/')}
-      />
-    );
-  }
-
   return (
     <div className="min-h-screen bg-alabaster text-obsidian selection:bg-cashmere">
       {/* Subtle Minimal Toast */}
@@ -361,6 +368,14 @@ export function App() {
       <ConciergeModal
         isOpen={conciergeOpen}
         onClose={() => setConciergeOpen(false)}
+      />
+
+      <CustomerAuthPage
+        isOpen={authModalOpen}
+        currentUser={currentUser}
+        onAuthSuccess={handleCustomerAuthSuccess}
+        onLogout={handleCustomerLogout}
+        onClose={handleCloseAuthModal}
       />
     </div>
   );
