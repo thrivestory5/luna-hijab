@@ -127,45 +127,47 @@ export const Navbar: React.FC<NavbarProps> = ({
 
             {/* Right Utility Controls */}
             <div className="flex items-center gap-2.5 sm:gap-3.5">
-              <button
-                onClick={onOpenContact}
-                className="hidden xl:inline-block px-4 py-2 rounded-full border border-obsidian/15 text-[10.5px] uppercase tracking-[0.18em] text-obsidian hover:border-obsidian transition-colors"
-              >
-                Concierge
-              </button>
-
-              <button
-                onClick={onOpenCart}
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-obsidian text-alabaster text-[11px] uppercase tracking-[0.18em] hover:bg-brass transition-colors shadow-xs"
-              >
-                <ShoppingBag className="w-3.5 h-3.5 text-champagne" />
-                <span className="hidden sm:inline">Bag</span>
-                <span className="px-1.5 py-0.2 rounded-full bg-white/15 text-[10px]">
-                  {cartCount}
-                </span>
-              </button>
-
-              {/* User Profile Photo / Login Button to the Right of Bag Button */}
               {currentUser ? (
-                <button
-                  type="button"
-                  onClick={() => onNavigate('/login')}
-                  title={`${currentUser.nama} (${currentUser.email})`}
-                  aria-label="Profil Member"
-                  className="w-9 h-9 rounded-full overflow-hidden border-2 border-champagne bg-travertine flex items-center justify-center shadow-xs hover:scale-105 transition-transform shrink-0"
-                >
-                  {currentUser.foto_url ? (
-                    <img
-                      src={currentUser.foto_url}
-                      alt={currentUser.nama}
-                      className="w-full h-full object-cover object-center"
-                    />
-                  ) : (
-                    <span className="font-serif text-xs font-semibold text-obsidian">
-                      {currentUser.nama.charAt(0).toUpperCase()}
+                <>
+                  <button
+                    onClick={onOpenContact}
+                    className="hidden xl:inline-block px-4 py-2 rounded-full border border-obsidian/15 text-[10.5px] uppercase tracking-[0.18em] text-obsidian hover:border-obsidian transition-colors"
+                  >
+                    Concierge
+                  </button>
+
+                  <button
+                    onClick={onOpenCart}
+                    className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-obsidian text-alabaster text-[11px] uppercase tracking-[0.18em] hover:bg-brass transition-colors shadow-xs"
+                  >
+                    <ShoppingBag className="w-3.5 h-3.5 text-champagne" />
+                    <span className="hidden sm:inline">Bag</span>
+                    <span className="px-1.5 py-0.2 rounded-full bg-white/15 text-[10px]">
+                      {cartCount}
                     </span>
-                  )}
-                </button>
+                  </button>
+
+                  {/* User Profile Photo to the Right of Bag Button */}
+                  <button
+                    type="button"
+                    onClick={() => onNavigate('/login')}
+                    title={`${currentUser.nama} (${currentUser.email})`}
+                    aria-label="Profil Member"
+                    className="w-9 h-9 rounded-full overflow-hidden border-2 border-champagne bg-travertine flex items-center justify-center shadow-xs hover:scale-105 transition-transform shrink-0"
+                  >
+                    {currentUser.foto_url ? (
+                      <img
+                        src={currentUser.foto_url}
+                        alt={currentUser.nama}
+                        className="w-full h-full object-cover object-center"
+                      />
+                    ) : (
+                      <span className="font-serif text-xs font-semibold text-obsidian">
+                        {currentUser.nama.charAt(0).toUpperCase()}
+                      </span>
+                    )}
+                  </button>
+                </>
               ) : (
                 <button
                   type="button"
