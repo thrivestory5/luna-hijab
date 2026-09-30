@@ -1,6 +1,7 @@
 import React from 'react';
 import { X, Plus, Minus } from 'lucide-react';
 import { BRAND_ASSETS, Product } from '../data/products';
+import { recordCheckoutOrder } from '../lib/supabase';
 
 export interface CartItem {
   key: string;
@@ -32,6 +33,24 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
 
   const subtotal = items.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
   const formattedSubtotal = `Rp ${subtotal.toLocaleString('id-ID')}`;
+
+  const handleRecordOrder = () => {
+    recordCheckoutOrder({
+      items: items.map((item) => ({
+        productId: item.product.id,
+        sku: item.product.sku,
+        name: item.product.rawName,
+        variant: item.variant,
+        size: item.size,
+        price: item.product.price,
+        quantity: item.quantity,
+      })),
+      totalAmount: subtotal,
+      formattedTotal: formattedSubtotal,
+    }).catch(() => {
+      // Non-blocking telemetry
+    });
+  };
 
   const buildWhatsAppCheckoutUrl = () => {
     const lines = items.map(
@@ -148,6 +167,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
             <div className="space-y-2.5">
               <a
                 href={buildWhatsAppCheckoutUrl()}
+                onClick={handleRecordOrder}
                 target="_blank"
                 rel="noreferrer"
                 className="block w-full py-4 bg-obsidian text-alabaster text-center text-[11px] uppercase tracking-[0.24em] hover:bg-brass transition-colors"

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { X } from 'lucide-react';
 import { BRAND_ASSETS } from '../data/products';
+import { createConciergeInquiry } from '../lib/supabase';
 
 interface ConciergeModalProps {
   isOpen: boolean;
@@ -12,18 +13,31 @@ export const ConciergeModal: React.FC<ConciergeModalProps> = ({ isOpen, onClose 
   const [email, setEmail] = useState('');
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
+  const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
 
   if (!isOpen) return null;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim() || !email.trim() || !message.trim()) {
       setError('Please complete all fields.');
       return;
     }
     setError('');
-    setSubmitted(true);
+    setSubmitting(true);
+    try {
+      await createConciergeInquiry({
+        fullName: name.trim(),
+        emailOrPhone: email.trim(),
+        message: message.trim(),
+      });
+    } catch {
+      // Allow graceful continuation to WhatsApp even if offline
+    } finally {
+      setSubmitting(false);
+      setSubmitted(true);
+    }
   };
 
   const whatsappUrl = `${BRAND_ASSETS.whatsappConcierge}?text=${encodeURIComponent(
@@ -126,9 +140,10 @@ export const ConciergeModal: React.FC<ConciergeModalProps> = ({ isOpen, onClose 
             <div className="pt-2 flex items-center justify-between gap-4">
               <button
                 type="submit"
-                className="px-8 py-3.5 bg-obsidian text-alabaster text-[11px] uppercase tracking-[0.24em] hover:bg-brass transition-colors"
+                disabled={submitting}
+                className="px-8 py-3.5 bg-obsidian text-alabaster text-[11px] uppercase tracking-[0.24em] hover:bg-brass transition-colors disabled:opacity-60"
               >
-                Send Message
+                {submitting ? 'Saving...' : 'Send Message'}
               </button>
 
               <a

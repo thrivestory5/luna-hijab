@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import Lenis from 'lenis';
 import { PRODUCTS, Product } from './data/products';
+import { fetchCatalogProducts } from './lib/supabase';
 import { Navbar } from './components/Navbar';
 import { HeroSection } from './components/HeroSection';
 import { AtelierHouses } from './components/AtelierHouses';
@@ -13,6 +14,7 @@ import { ConciergeModal } from './components/ConciergeModal';
 import { Footer } from './components/Footer';
 
 export function App() {
+  const [catalogProducts, setCatalogProducts] = useState<Product[]>(PRODUCTS);
   const [activeBrand, setActiveBrand] = useState<string>('ALL');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
@@ -21,6 +23,23 @@ export function App() {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [wishlist, setWishlist] = useState<number[]>([]);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  // Sync live catalog from Supabase "luna Project" database
+  useEffect(() => {
+    let active = true;
+    fetchCatalogProducts()
+      .then((remoteProducts) => {
+        if (active && remoteProducts && remoteProducts.length > 0) {
+          setCatalogProducts(remoteProducts);
+        }
+      })
+      .catch(() => {
+        // Fallback to local static catalog if offline
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
 
   // Smooth inertial scroll
   useEffect(() => {
@@ -169,7 +188,7 @@ export function App() {
 
       <main>
         <HeroSection
-          featuredProducts={PRODUCTS.slice(0, 4)}
+          featuredProducts={catalogProducts.slice(0, 4)}
           wishlist={wishlist}
           onToggleWishlist={handleToggleWishlist}
           onSelectProduct={(p) => setSelectedProduct(p)}
@@ -186,7 +205,7 @@ export function App() {
         <AtelierHouses onSelectHouse={(brand) => setActiveBrand(brand)} />
 
         <CollectionArchive
-          products={PRODUCTS}
+          products={catalogProducts}
           activeBrand={activeBrand}
           onSelectBrand={setActiveBrand}
           searchQuery={searchQuery}
@@ -198,7 +217,7 @@ export function App() {
         />
 
         <PinnedLookbook
-          products={PRODUCTS}
+          products={catalogProducts}
           wishlist={wishlist}
           onToggleWishlist={handleToggleWishlist}
           onSelectProduct={(p) => setSelectedProduct(p)}
