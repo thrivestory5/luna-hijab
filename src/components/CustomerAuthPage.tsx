@@ -76,6 +76,9 @@ export const CustomerAuthPage: React.FC<CustomerAuthPageProps> = ({
   const [districtOptions, setDistrictOptions] = useState<WilayahItem[]>([]);
   const [villageOptions, setVillageOptions] = useState<WilayahItem[]>([]);
   const [kodePosOptions, setKodePosOptions] = useState<KodePosSuggestion[]>([]);
+  const [loadingWilayah, setLoadingWilayah] = useState<
+    'kota' | 'kecamatan' | 'kelurahan' | 'kodepos' | null
+  >(null);
   const [activeDropdown, setActiveDropdown] = useState<
     'provinsi' | 'kota' | 'kecamatan' | 'kelurahan' | 'kodepos' | null
   >(null);
@@ -93,34 +96,63 @@ export const CustomerAuthPage: React.FC<CustomerAuthPageProps> = ({
     }
   }, [isOpen]);
 
+  // Close active dropdown when clicking outside its field wrapper (allows scrollbar dragging)
+  useEffect(() => {
+    if (!activeDropdown) return;
+    const handleMouseDownOutside = (e: MouseEvent) => {
+      const target = e.target as HTMLElement | null;
+      if (!target?.closest(`[data-wilayah-field="${activeDropdown}"]`)) {
+        setActiveDropdown(null);
+      }
+    };
+    document.addEventListener('mousedown', handleMouseDownOutside);
+    return () => document.removeEventListener('mousedown', handleMouseDownOutside);
+  }, [activeDropdown]);
+
   if (!isOpen) return null;
 
-  // Filtered suggestion lists
+  // Filtered suggestion lists (show full list if current value is empty or already an exact selected match)
   const filteredProvinces =
     provinsi.trim().length >= 1
-      ? INDONESIAN_PROVINCES.filter((p) =>
-          p.name.toLowerCase().includes(provinsi.trim().toLowerCase())
+      ? INDONESIAN_PROVINCES.some(
+          (p) => p.name.toLowerCase() === provinsi.trim().toLowerCase()
         )
+        ? INDONESIAN_PROVINCES
+        : INDONESIAN_PROVINCES.filter((p) =>
+            p.name.toLowerCase().includes(provinsi.trim().toLowerCase())
+          )
       : [];
 
+  const isExactRegency = regencyOptions.some(
+    (r) => r.name.toLowerCase() === kotaKabupaten.trim().toLowerCase()
+  );
   const filteredRegencies = regencyOptions.filter((r) =>
-    kotaKabupaten.trim()
+    kotaKabupaten.trim() && !isExactRegency
       ? r.name.toLowerCase().includes(kotaKabupaten.trim().toLowerCase())
       : true
   );
 
+  const isExactDistrict = districtOptions.some(
+    (d) => d.name.toLowerCase() === kecamatan.trim().toLowerCase()
+  );
   const filteredDistricts = districtOptions.filter((d) =>
-    kecamatan.trim() ? d.name.toLowerCase().includes(kecamatan.trim().toLowerCase()) : true
+    kecamatan.trim() && !isExactDistrict
+      ? d.name.toLowerCase().includes(kecamatan.trim().toLowerCase())
+      : true
   );
 
+  const isExactVillage = villageOptions.some(
+    (v) => v.name.toLowerCase() === kelurahanDesa.trim().toLowerCase()
+  );
   const filteredVillages = villageOptions.filter((v) =>
-    kelurahanDesa.trim()
+    kelurahanDesa.trim() && !isExactVillage
       ? v.name.toLowerCase().includes(kelurahanDesa.trim().toLowerCase())
       : true
   );
 
+  const isExactKodePos = kodePosOptions.some((k) => k.code === kodePos.trim());
   const filteredKodePos = kodePosOptions.filter((k) =>
-    kodePos.trim()
+    kodePos.trim() && !isExactKodePos
       ? k.code.includes(kodePos.trim()) ||
         k.label.toLowerCase().includes(kodePos.trim().toLowerCase())
       : true
@@ -139,8 +171,13 @@ export const CustomerAuthPage: React.FC<CustomerAuthPageProps> = ({
     setKodePosOptions([]);
     setActiveDropdown(null);
 
-    const regencies = await fetchRegenciesByProvince(item.id);
-    setRegencyOptions(regencies);
+    setLoadingWilayah('kota');
+    try {
+      const regencies = await fetchRegenciesByProvince(item.id);
+      setRegencyOptions(regencies);
+    } finally {
+      setLoadingWilayah((prev) => (prev === 'kota' ? null : prev));
+    }
   };
 
   const handleChooseRegency = async (item: WilayahItem) => {
@@ -153,8 +190,13 @@ export const CustomerAuthPage: React.FC<CustomerAuthPageProps> = ({
     setKodePosOptions([]);
     setActiveDropdown(null);
 
-    const districts = await fetchDistrictsByRegency(item.id);
-    setDistrictOptions(districts);
+    setLoadingWilayah('kecamatan');
+    try {
+      const districts = await fetchDistrictsByRegency(item.id);
+      setDistrictOptions(districts);
+    } finally {
+      setLoadingWilayah((prev) => (prev === 'kecamatan' ? null : prev));
+    }
   };
 
   const handleChooseDistrict = async (item: WilayahItem) => {
@@ -164,8 +206,13 @@ export const CustomerAuthPage: React.FC<CustomerAuthPageProps> = ({
     setVillageOptions([]);
     setActiveDropdown(null);
 
-    const villages = await fetchVillagesByDistrict(item.id);
-    setVillageOptions(villages);
+    setLoadingWilayah('kelurahan');
+    try {
+      const villages = await fetchVillagesByDistrict(item.id);
+      setVillageOptions(villages);
+    } finally {
+      setLoadingWilayah((prev) => (prev === 'kelurahan' ? null : prev));
+    }
 
     const kp = await fetchKodePosSuggestions({
       provinceId: selectedProvinceId,
@@ -180,16 +227,21 @@ export const CustomerAuthPage: React.FC<CustomerAuthPageProps> = ({
     setKelurahanDesa(item.name);
     setActiveDropdown(null);
 
-    const kp = await fetchKodePosSuggestions({
-      provinceId: selectedProvinceId,
-      provinsi,
-      kotaKabupaten,
-      kecamatan,
-      kelurahanDesa: item.name,
-    });
-    setKodePosOptions(kp);
-    if (kp.length === 1 && !kodePos) {
-      setKodePos(kp[0].code);
+    setLoadingWilayah('kodepos');
+    try {
+      const kp = await fetchKodePosSuggestions({
+        provinceId: selectedProvinceId,
+        provinsi,
+        kotaKabupaten,
+        kecamatan,
+        kelurahanDesa: item.name,
+      });
+      setKodePosOptions(kp);
+      if (kp.length === 1 && !kodePos) {
+        setKodePos(kp[0].code);
+      }
+    } finally {
+      setLoadingWilayah((prev) => (prev === 'kodepos' ? null : prev));
     }
   };
 
@@ -704,50 +756,87 @@ export const CustomerAuthPage: React.FC<CustomerAuthPageProps> = ({
                   </div>
 
                   {/* PROVINSI — Shows suggestions after typing 1+ letter */}
-                  <div className="relative">
+                  <div
+                    data-wilayah-field="provinsi"
+                    className={`relative ${activeDropdown === 'provinsi' ? 'z-50' : 'z-10'}`}
+                  >
                     <label className="block text-[10px] uppercase tracking-[0.2em] text-taupe mb-1">
                       Provinsi *
                     </label>
-                    <input
-                      type="text"
-                      required
-                      autoComplete="off"
-                      placeholder="Ketik huruf untuk cari Provinsi"
-                      value={provinsi}
-                      onFocus={() => setActiveDropdown('provinsi')}
-                      onBlur={() => setTimeout(() => setActiveDropdown(null), 150)}
-                      onChange={(e) => {
-                        setProvinsi(e.target.value);
-                        setActiveDropdown('provinsi');
-                      }}
-                      className="w-full px-3.5 py-2.5 rounded-xl bg-alabaster border border-obsidian/15 text-xs focus:outline-none focus:border-obsidian"
-                    />
-
-                    {activeDropdown === 'provinsi' && filteredProvinces.length > 0 && (
-                      <ul
-                        data-lenis-prevent
-                        className="absolute left-0 right-0 top-full mt-1 z-40 max-h-48 overflow-y-auto rounded-xl bg-white border border-obsidian/15 shadow-xl divide-y divide-obsidian/[0.06]"
+                    <div className="relative">
+                      <input
+                        type="text"
+                        required
+                        autoComplete="off"
+                        placeholder="Ketik huruf untuk cari Provinsi"
+                        value={provinsi}
+                        onClick={() => setActiveDropdown('provinsi')}
+                        onFocus={() => setActiveDropdown('provinsi')}
+                        onChange={(e) => {
+                          setProvinsi(e.target.value);
+                          setActiveDropdown('provinsi');
+                        }}
+                        className="w-full pl-3.5 pr-8 py-2.5 rounded-xl bg-alabaster border border-obsidian/15 text-xs focus:outline-none focus:border-obsidian"
+                      />
+                      <button
+                        type="button"
+                        tabIndex={-1}
+                        onClick={() =>
+                          setActiveDropdown((prev) => (prev === 'provinsi' ? null : 'provinsi'))
+                        }
+                        className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1 text-taupe hover:text-obsidian transition-colors"
                       >
-                        {filteredProvinces.map((item) => (
-                          <li key={item.id}>
-                            <button
-                              type="button"
-                              onMouseDown={(e) => {
-                                e.preventDefault();
-                                handleChooseProvince(item);
-                              }}
-                              className="w-full text-left px-3.5 py-2 text-xs text-obsidian hover:bg-alabaster transition-colors"
-                            >
-                              {item.name}
-                            </button>
-                          </li>
-                        ))}
-                      </ul>
+                        <ChevronDown
+                          className={`w-3.5 h-3.5 transition-transform duration-200 ${
+                            activeDropdown === 'provinsi' ? 'rotate-180 text-obsidian' : ''
+                          }`}
+                        />
+                      </button>
+                    </div>
+
+                    {activeDropdown === 'provinsi' && provinsi.trim().length >= 1 && (
+                      <div className="absolute left-0 right-0 top-full mt-1.5 z-50 rounded-xl overflow-hidden bg-white border border-obsidian/20 shadow-[0_12px_32px_rgba(28,24,21,0.18)]">
+                        {filteredProvinces.length > 0 ? (
+                          <ul
+                            data-lenis-prevent
+                            onWheel={(e) => e.stopPropagation()}
+                            onTouchMove={(e) => e.stopPropagation()}
+                            className="max-h-44 overflow-y-auto overscroll-contain divide-y divide-obsidian/[0.06]"
+                          >
+                            {filteredProvinces.map((item) => {
+                              const isSelected =
+                                item.name.toLowerCase() === provinsi.trim().toLowerCase();
+                              return (
+                                <li key={item.id}>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleChooseProvince(item)}
+                                    className={`w-full text-left px-3.5 py-2.5 text-xs transition-colors ${
+                                      isSelected
+                                        ? 'bg-alabaster font-medium text-brass'
+                                        : 'text-obsidian hover:bg-alabaster'
+                                    }`}
+                                  >
+                                    {item.name}
+                                  </button>
+                                </li>
+                              );
+                            })}
+                          </ul>
+                        ) : (
+                          <div className="px-3.5 py-2.5 text-xs text-taupe">
+                            Provinsi tidak ditemukan.
+                          </div>
+                        )}
+                      </div>
                     )}
                   </div>
 
                   {/* KOTA / KABUPATEN — Shows all Kota/Kabupaten in chosen province on click */}
-                  <div className="relative">
+                  <div
+                    data-wilayah-field="kota"
+                    className={`relative ${activeDropdown === 'kota' ? 'z-50' : 'z-10'}`}
+                  >
                     <label className="block text-[10px] uppercase tracking-[0.2em] text-taupe mb-1">
                       Kota / Kabupaten *
                     </label>
@@ -762,41 +851,79 @@ export const CustomerAuthPage: React.FC<CustomerAuthPageProps> = ({
                         value={kotaKabupaten}
                         onClick={() => setActiveDropdown('kota')}
                         onFocus={() => setActiveDropdown('kota')}
-                        onBlur={() => setTimeout(() => setActiveDropdown(null), 150)}
                         onChange={(e) => {
                           setKotaKabupaten(e.target.value);
                           setActiveDropdown('kota');
                         }}
                         className="w-full pl-3.5 pr-8 py-2.5 rounded-xl bg-alabaster border border-obsidian/15 text-xs focus:outline-none focus:border-obsidian"
                       />
-                      <ChevronDown className="w-3.5 h-3.5 text-taupe absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                      <button
+                        type="button"
+                        tabIndex={-1}
+                        onClick={() =>
+                          setActiveDropdown((prev) => (prev === 'kota' ? null : 'kota'))
+                        }
+                        className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1 text-taupe hover:text-obsidian transition-colors"
+                      >
+                        <ChevronDown
+                          className={`w-3.5 h-3.5 transition-transform duration-200 ${
+                            activeDropdown === 'kota' ? 'rotate-180 text-obsidian' : ''
+                          }`}
+                        />
+                      </button>
                     </div>
 
-                    {activeDropdown === 'kota' && filteredRegencies.length > 0 && (
-                      <ul
-                        data-lenis-prevent
-                        className="absolute left-0 right-0 top-full mt-1 z-40 max-h-48 overflow-y-auto rounded-xl bg-white border border-obsidian/15 shadow-xl divide-y divide-obsidian/[0.06]"
-                      >
-                        {filteredRegencies.map((item) => (
-                          <li key={item.id}>
-                            <button
-                              type="button"
-                              onMouseDown={(e) => {
-                                e.preventDefault();
-                                handleChooseRegency(item);
-                              }}
-                              className="w-full text-left px-3.5 py-2 text-xs text-obsidian hover:bg-alabaster transition-colors"
-                            >
-                              {item.name}
-                            </button>
-                          </li>
-                        ))}
-                      </ul>
+                    {activeDropdown === 'kota' && (
+                      <div className="absolute left-0 right-0 top-full mt-1.5 z-50 rounded-xl overflow-hidden bg-white border border-obsidian/20 shadow-[0_12px_32px_rgba(28,24,21,0.18)]">
+                        {loadingWilayah === 'kota' ? (
+                          <div className="px-3.5 py-2.5 text-xs text-taupe">
+                            Memuat daftar Kota / Kabupaten...
+                          </div>
+                        ) : !selectedProvinceId ? (
+                          <div className="px-3.5 py-2.5 text-xs text-taupe">
+                            Pilih Provinsi dari daftar saran terlebih dahulu.
+                          </div>
+                        ) : filteredRegencies.length > 0 ? (
+                          <ul
+                            data-lenis-prevent
+                            onWheel={(e) => e.stopPropagation()}
+                            onTouchMove={(e) => e.stopPropagation()}
+                            className="max-h-44 overflow-y-auto overscroll-contain divide-y divide-obsidian/[0.06]"
+                          >
+                            {filteredRegencies.map((item) => {
+                              const isSelected =
+                                item.name.toLowerCase() === kotaKabupaten.trim().toLowerCase();
+                              return (
+                                <li key={item.id}>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleChooseRegency(item)}
+                                    className={`w-full text-left px-3.5 py-2.5 text-xs transition-colors ${
+                                      isSelected
+                                        ? 'bg-alabaster font-medium text-brass'
+                                        : 'text-obsidian hover:bg-alabaster'
+                                    }`}
+                                  >
+                                    {item.name}
+                                  </button>
+                                </li>
+                              );
+                            })}
+                          </ul>
+                        ) : (
+                          <div className="px-3.5 py-2.5 text-xs text-taupe">
+                            Kota / Kabupaten tidak ditemukan.
+                          </div>
+                        )}
+                      </div>
                     )}
                   </div>
 
-                  {/* KECAMATAN — Shows all Kecamatan in chosen Kota/Kabupaten on click */}
-                  <div className="relative">
+                  {/* KECAMATAN — Opens upward so it is never clipped by the bottom of the modal */}
+                  <div
+                    data-wilayah-field="kecamatan"
+                    className={`relative ${activeDropdown === 'kecamatan' ? 'z-50' : 'z-10'}`}
+                  >
                     <label className="block text-[10px] uppercase tracking-[0.2em] text-taupe mb-1">
                       Kecamatan *
                     </label>
@@ -811,41 +938,79 @@ export const CustomerAuthPage: React.FC<CustomerAuthPageProps> = ({
                         value={kecamatan}
                         onClick={() => setActiveDropdown('kecamatan')}
                         onFocus={() => setActiveDropdown('kecamatan')}
-                        onBlur={() => setTimeout(() => setActiveDropdown(null), 150)}
                         onChange={(e) => {
                           setKecamatan(e.target.value);
                           setActiveDropdown('kecamatan');
                         }}
                         className="w-full pl-3.5 pr-8 py-2.5 rounded-xl bg-alabaster border border-obsidian/15 text-xs focus:outline-none focus:border-obsidian"
                       />
-                      <ChevronDown className="w-3.5 h-3.5 text-taupe absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                      <button
+                        type="button"
+                        tabIndex={-1}
+                        onClick={() =>
+                          setActiveDropdown((prev) => (prev === 'kecamatan' ? null : 'kecamatan'))
+                        }
+                        className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1 text-taupe hover:text-obsidian transition-colors"
+                      >
+                        <ChevronDown
+                          className={`w-3.5 h-3.5 transition-transform duration-200 ${
+                            activeDropdown === 'kecamatan' ? 'rotate-180 text-obsidian' : ''
+                          }`}
+                        />
+                      </button>
                     </div>
 
-                    {activeDropdown === 'kecamatan' && filteredDistricts.length > 0 && (
-                      <ul
-                        data-lenis-prevent
-                        className="absolute left-0 right-0 top-full mt-1 z-40 max-h-48 overflow-y-auto rounded-xl bg-white border border-obsidian/15 shadow-xl divide-y divide-obsidian/[0.06]"
-                      >
-                        {filteredDistricts.map((item) => (
-                          <li key={item.id}>
-                            <button
-                              type="button"
-                              onMouseDown={(e) => {
-                                e.preventDefault();
-                                handleChooseDistrict(item);
-                              }}
-                              className="w-full text-left px-3.5 py-2 text-xs text-obsidian hover:bg-alabaster transition-colors"
-                            >
-                              {item.name}
-                            </button>
-                          </li>
-                        ))}
-                      </ul>
+                    {activeDropdown === 'kecamatan' && (
+                      <div className="absolute left-0 right-0 bottom-full mb-1.5 z-50 rounded-xl overflow-hidden bg-white border border-obsidian/20 shadow-[0_12px_32px_rgba(28,24,21,0.18)]">
+                        {loadingWilayah === 'kecamatan' ? (
+                          <div className="px-3.5 py-2.5 text-xs text-taupe">
+                            Memuat daftar Kecamatan...
+                          </div>
+                        ) : districtOptions.length === 0 ? (
+                          <div className="px-3.5 py-2.5 text-xs text-taupe">
+                            Pilih Kota / Kabupaten terlebih dahulu.
+                          </div>
+                        ) : filteredDistricts.length > 0 ? (
+                          <ul
+                            data-lenis-prevent
+                            onWheel={(e) => e.stopPropagation()}
+                            onTouchMove={(e) => e.stopPropagation()}
+                            className="max-h-44 overflow-y-auto overscroll-contain divide-y divide-obsidian/[0.06]"
+                          >
+                            {filteredDistricts.map((item) => {
+                              const isSelected =
+                                item.name.toLowerCase() === kecamatan.trim().toLowerCase();
+                              return (
+                                <li key={item.id}>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleChooseDistrict(item)}
+                                    className={`w-full text-left px-3.5 py-2.5 text-xs transition-colors ${
+                                      isSelected
+                                        ? 'bg-alabaster font-medium text-brass'
+                                        : 'text-obsidian hover:bg-alabaster'
+                                    }`}
+                                  >
+                                    {item.name}
+                                  </button>
+                                </li>
+                              );
+                            })}
+                          </ul>
+                        ) : (
+                          <div className="px-3.5 py-2.5 text-xs text-taupe">
+                            Kecamatan tidak ditemukan.
+                          </div>
+                        )}
+                      </div>
                     )}
                   </div>
 
-                  {/* KELURAHAN / DESA — Shows all Kelurahan/Desa in chosen Kecamatan on click */}
-                  <div className="relative">
+                  {/* KELURAHAN / DESA — Opens upward so it is never clipped by the bottom of the modal */}
+                  <div
+                    data-wilayah-field="kelurahan"
+                    className={`relative ${activeDropdown === 'kelurahan' ? 'z-50' : 'z-10'}`}
+                  >
                     <label className="block text-[10px] uppercase tracking-[0.2em] text-taupe mb-1">
                       Kelurahan / Desa *
                     </label>
@@ -860,45 +1025,85 @@ export const CustomerAuthPage: React.FC<CustomerAuthPageProps> = ({
                         value={kelurahanDesa}
                         onClick={() => setActiveDropdown('kelurahan')}
                         onFocus={() => setActiveDropdown('kelurahan')}
-                        onBlur={() => setTimeout(() => setActiveDropdown(null), 150)}
                         onChange={(e) => {
                           setKelurahanDesa(e.target.value);
                           setActiveDropdown('kelurahan');
                         }}
                         className="w-full pl-3.5 pr-8 py-2.5 rounded-xl bg-alabaster border border-obsidian/15 text-xs focus:outline-none focus:border-obsidian"
                       />
-                      <ChevronDown className="w-3.5 h-3.5 text-taupe absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                      <button
+                        type="button"
+                        tabIndex={-1}
+                        onClick={() =>
+                          setActiveDropdown((prev) => (prev === 'kelurahan' ? null : 'kelurahan'))
+                        }
+                        className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1 text-taupe hover:text-obsidian transition-colors"
+                      >
+                        <ChevronDown
+                          className={`w-3.5 h-3.5 transition-transform duration-200 ${
+                            activeDropdown === 'kelurahan' ? 'rotate-180 text-obsidian' : ''
+                          }`}
+                        />
+                      </button>
                     </div>
 
-                    {activeDropdown === 'kelurahan' && filteredVillages.length > 0 && (
-                      <ul
-                        data-lenis-prevent
-                        className="absolute left-0 right-0 top-full mt-1 z-40 max-h-48 overflow-y-auto rounded-xl bg-white border border-obsidian/15 shadow-xl divide-y divide-obsidian/[0.06]"
-                      >
-                        {filteredVillages.map((item) => (
-                          <li key={item.id}>
-                            <button
-                              type="button"
-                              onMouseDown={(e) => {
-                                e.preventDefault();
-                                handleChooseVillage(item);
-                              }}
-                              className="w-full text-left px-3.5 py-2 text-xs text-obsidian hover:bg-alabaster transition-colors"
-                            >
-                              {item.name}
-                            </button>
-                          </li>
-                        ))}
-                      </ul>
+                    {activeDropdown === 'kelurahan' && (
+                      <div className="absolute left-0 right-0 bottom-full mb-1.5 z-50 rounded-xl overflow-hidden bg-white border border-obsidian/20 shadow-[0_12px_32px_rgba(28,24,21,0.18)]">
+                        {loadingWilayah === 'kelurahan' ? (
+                          <div className="px-3.5 py-2.5 text-xs text-taupe">
+                            Memuat daftar Kelurahan / Desa...
+                          </div>
+                        ) : villageOptions.length === 0 ? (
+                          <div className="px-3.5 py-2.5 text-xs text-taupe">
+                            Pilih Kecamatan terlebih dahulu.
+                          </div>
+                        ) : filteredVillages.length > 0 ? (
+                          <ul
+                            data-lenis-prevent
+                            onWheel={(e) => e.stopPropagation()}
+                            onTouchMove={(e) => e.stopPropagation()}
+                            className="max-h-44 overflow-y-auto overscroll-contain divide-y divide-obsidian/[0.06]"
+                          >
+                            {filteredVillages.map((item) => {
+                              const isSelected =
+                                item.name.toLowerCase() === kelurahanDesa.trim().toLowerCase();
+                              return (
+                                <li key={item.id}>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleChooseVillage(item)}
+                                    className={`w-full text-left px-3.5 py-2.5 text-xs transition-colors ${
+                                      isSelected
+                                        ? 'bg-alabaster font-medium text-brass'
+                                        : 'text-obsidian hover:bg-alabaster'
+                                    }`}
+                                  >
+                                    {item.name}
+                                  </button>
+                                </li>
+                              );
+                            })}
+                          </ul>
+                        ) : (
+                          <div className="px-3.5 py-2.5 text-xs text-taupe">
+                            Kelurahan / Desa tidak ditemukan.
+                          </div>
+                        )}
+                      </div>
                     )}
                   </div>
 
-                  {/* KODE POS — Shows suggestions for chosen Kelurahan/Kecamatan/Kota */}
-                  <div className="sm:col-span-2 relative">
+                  {/* KODE POS — Full-width alignment, opens upward */}
+                  <div
+                    data-wilayah-field="kodepos"
+                    className={`sm:col-span-2 relative ${
+                      activeDropdown === 'kodepos' ? 'z-50' : 'z-10'
+                    }`}
+                  >
                     <label className="block text-[10px] uppercase tracking-[0.2em] text-taupe mb-1">
                       Kode Pos *
                     </label>
-                    <div className="relative w-full sm:w-1/2">
+                    <div className="relative w-full">
                       <input
                         type="text"
                         required
@@ -907,37 +1112,64 @@ export const CustomerAuthPage: React.FC<CustomerAuthPageProps> = ({
                         value={kodePos}
                         onClick={() => setActiveDropdown('kodepos')}
                         onFocus={() => setActiveDropdown('kodepos')}
-                        onBlur={() => setTimeout(() => setActiveDropdown(null), 150)}
                         onChange={(e) => {
                           setKodePos(e.target.value);
                           setActiveDropdown('kodepos');
                         }}
                         className="w-full pl-3.5 pr-8 py-2.5 rounded-xl bg-alabaster border border-obsidian/15 text-xs focus:outline-none focus:border-obsidian"
                       />
-                      <ChevronDown className="w-3.5 h-3.5 text-taupe absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                      <button
+                        type="button"
+                        tabIndex={-1}
+                        onClick={() =>
+                          setActiveDropdown((prev) => (prev === 'kodepos' ? null : 'kodepos'))
+                        }
+                        className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1 text-taupe hover:text-obsidian transition-colors"
+                      >
+                        <ChevronDown
+                          className={`w-3.5 h-3.5 transition-transform duration-200 ${
+                            activeDropdown === 'kodepos' ? 'rotate-180 text-obsidian' : ''
+                          }`}
+                        />
+                      </button>
                     </div>
 
-                    {activeDropdown === 'kodepos' && filteredKodePos.length > 0 && (
-                      <ul
-                        data-lenis-prevent
-                        className="absolute left-0 sm:w-2/3 top-full mt-1 z-40 max-h-48 overflow-y-auto rounded-xl bg-white border border-obsidian/15 shadow-xl divide-y divide-obsidian/[0.06]"
-                      >
-                        {filteredKodePos.map((item) => (
-                          <li key={item.code}>
-                            <button
-                              type="button"
-                              onMouseDown={(e) => {
-                                e.preventDefault();
-                                handleChooseKodePos(item);
-                              }}
-                              className="w-full text-left px-3.5 py-2 text-xs text-obsidian hover:bg-alabaster transition-colors"
+                    {activeDropdown === 'kodepos' &&
+                      (loadingWilayah === 'kodepos' || filteredKodePos.length > 0) && (
+                        <div className="absolute left-0 right-0 bottom-full mb-1.5 z-50 rounded-xl overflow-hidden bg-white border border-obsidian/20 shadow-[0_12px_32px_rgba(28,24,21,0.18)]">
+                          {loadingWilayah === 'kodepos' ? (
+                            <div className="px-3.5 py-2.5 text-xs text-taupe">
+                              Memuat saran Kode Pos...
+                            </div>
+                          ) : (
+                            <ul
+                              data-lenis-prevent
+                              onWheel={(e) => e.stopPropagation()}
+                              onTouchMove={(e) => e.stopPropagation()}
+                              className="max-h-44 overflow-y-auto overscroll-contain divide-y divide-obsidian/[0.06]"
                             >
-                              {item.label}
-                            </button>
-                          </li>
-                        ))}
-                      </ul>
-                    )}
+                              {filteredKodePos.map((item) => {
+                                const isSelected = item.code === kodePos.trim();
+                                return (
+                                  <li key={item.code}>
+                                    <button
+                                      type="button"
+                                      onClick={() => handleChooseKodePos(item)}
+                                      className={`w-full text-left px-3.5 py-2.5 text-xs transition-colors ${
+                                        isSelected
+                                          ? 'bg-alabaster font-medium text-brass'
+                                          : 'text-obsidian hover:bg-alabaster'
+                                      }`}
+                                    >
+                                      {item.label}
+                                    </button>
+                                  </li>
+                                );
+                              })}
+                            </ul>
+                          )}
+                        </div>
+                      )}
                   </div>
                 </div>
 

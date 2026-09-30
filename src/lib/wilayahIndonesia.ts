@@ -181,10 +181,12 @@ export async function fetchRegenciesByProvince(provinceId: string): Promise<Wila
   );
   if (!data) return [];
 
-  const formatted = data.map((item) => ({
-    id: String(item.id),
-    name: formatWilayahName(item.name),
-  }));
+  const formatted = data
+    .map((item) => ({
+      id: String(item.id),
+      name: formatWilayahName(item.name),
+    }))
+    .sort((a, b) => a.name.localeCompare(b.name, 'id'));
   regencyCache.set(provinceId, formatted);
   return formatted;
 }
@@ -199,10 +201,12 @@ export async function fetchDistrictsByRegency(regencyId: string): Promise<Wilaya
   );
   if (!data) return [];
 
-  const formatted = data.map((item) => ({
-    id: String(item.id),
-    name: formatWilayahName(item.name),
-  }));
+  const formatted = data
+    .map((item) => ({
+      id: String(item.id),
+      name: formatWilayahName(item.name),
+    }))
+    .sort((a, b) => a.name.localeCompare(b.name, 'id'));
   districtCache.set(regencyId, formatted);
   return formatted;
 }
@@ -217,10 +221,12 @@ export async function fetchVillagesByDistrict(districtId: string): Promise<Wilay
   );
   if (!data) return [];
 
-  const formatted = data.map((item) => ({
-    id: String(item.id),
-    name: formatWilayahName(item.name),
-  }));
+  const formatted = data
+    .map((item) => ({
+      id: String(item.id),
+      name: formatWilayahName(item.name),
+    }))
+    .sort((a, b) => a.name.localeCompare(b.name, 'id'));
   villageCache.set(districtId, formatted);
   return formatted;
 }
