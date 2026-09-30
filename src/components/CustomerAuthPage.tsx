@@ -471,9 +471,6 @@ export const CustomerAuthPage: React.FC<CustomerAuthPageProps> = ({
                       >
                         {photoPreview ? 'Ubah Foto' : 'Tambah Foto Profil'}
                       </button>
-                      <p className="text-[10px] text-taupe font-light mt-0.5">
-                        Tampil di kanan tombol Bag
-                      </p>
                     </div>
                     <input
                       ref={fileInputRef}
