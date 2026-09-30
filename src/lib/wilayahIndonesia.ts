@@ -4,8 +4,13 @@ export interface WilayahItem {
 }
 
 export interface KodePosSuggestion {
+  id: string;
   code: string;
   label: string;
+  province?: string;
+  regency?: string;
+  district?: string;
+  village?: string;
 }
 
 // Complete list of all 38 Provinces in Indonesia
@@ -259,7 +264,7 @@ export async function fetchKodePosSuggestions(params: {
   if (cleanRegency && queries.length === 0) queries.push(cleanRegency);
 
   const results: KodePosSuggestion[] = [];
-  const seenCodes = new Set<string>();
+  const seenKeys = new Set<string>();
 
   for (const q of queries) {
     try {
@@ -278,7 +283,9 @@ export async function fetchKodePosSuggestions(params: {
           const rDist = (row.district || '').toLowerCase();
           const rVil = (row.village || '').toLowerCase();
           if (cleanRegency && rReg.includes(cleanRegency)) score += 4;
-          if (cleanDistrict && rDist.includes(cleanDistrict)) score += 3;
+          if (cleanDistrict && (rDist.includes(cleanDistrict) || cleanDistrict.includes(rDist))) {
+            score += 3;
+          }
           if (cleanVillage && rVil === cleanVillage) score += 5;
           else if (cleanVillage && rVil.includes(cleanVillage)) score += 2;
           return { row, score };
@@ -288,14 +295,20 @@ export async function fetchKodePosSuggestions(params: {
 
       for (const { row } of scored) {
         const codeStr = String(row.code);
-        if (!seenCodes.has(codeStr)) {
-          seenCodes.add(codeStr);
+        const uniqueKey = `${codeStr}-${row.village}-${row.district}`;
+        if (!seenKeys.has(uniqueKey)) {
+          seenKeys.add(uniqueKey);
           results.push({
+            id: uniqueKey,
             code: codeStr,
             label: `${codeStr} — Kel. ${row.village}, Kec. ${row.district}, ${row.regency}`,
+            province: row.province,
+            regency: row.regency,
+            district: row.district,
+            village: row.village,
           });
         }
-        if (results.length >= 12) break;
+        if (results.length >= 15) break;
       }
       if (results.length > 0) break;
     } catch {
@@ -312,11 +325,184 @@ export async function fetchKodePosSuggestions(params: {
         .join(', ') || params.provinsi || 'Indonesia';
     for (const code of prefixes) {
       results.push({
+        id: `${code}-${areaSuffix}`,
         code,
         label: `${code} — ${areaSuffix}`,
+        province: params.provinsi,
+        regency: params.kotaKabupaten,
+        district: params.kecamatan,
+        village: params.kelurahanDesa,
       });
     }
   }
 
   return results;
+}
+
+export async function searchByKodePos(query: string): Promise<KodePosSuggestion[]> {
+  const clean = query.trim();
+  if (clean.length < 3) return [];
+
+  const results: KodePosSuggestion[] = [];
+  const seenKeys = new Set<string>();
+
+  try {
+    const res = await fetch(
+      `https://kodepos.vercel.app/search/?q=${encodeURIComponent(clean)}`
+    );
+    if (res.ok) {
+      const json = (await res.json()) as { data?: KodePosApiRow[] };
+      const rows = Array.isArray(json.data) ? json.data : [];
+
+      // Prioritize exact postal code prefix matches
+      const sorted = [...rows].sort((a, b) => {
+        const aCode = String(a.code);
+        const bCode = String(b.code);
+        const aExact = aCode === clean ? 2 : aCode.startsWith(clean) ? 1 : 0;
+        const bExact = bCode === clean ? 2 : bCode.startsWith(clean) ? 1 : 0;
+        if (aExact !== bExact) return bExact - aExact;
+        return a.village.localeCompare(b.village, 'id');
+      });
+
+      for (const row of sorted) {
+        const codeStr = String(row.code);
+        if (/^\d+$/.test(clean) && !codeStr.startsWith(clean)) continue;
+        const uniqueKey = `${codeStr}-${row.village}-${row.district}-${row.regency}`;
+        if (!seenKeys.has(uniqueKey)) {
+          seenKeys.add(uniqueKey);
+          results.push({
+            id: uniqueKey,
+            code: codeStr,
+            label: `${codeStr} — Kel. ${row.village}, Kec. ${row.district}, ${row.regency}, ${row.province}`,
+            province: row.province,
+            regency: row.regency,
+            district: row.district,
+            village: row.village,
+          });
+        }
+        if (results.length >= 20) break;
+      }
+    }
+  } catch {
+    // Fallback below
+  }
+
+  return results;
+}
+
+function normalizeRegencyBase(name: string): string {
+  return name
+    .toLowerCase()
+    .replace(/^(kab\.|kabupaten|kota)\s+(administrasi\s+)?/i, '')
+    .replace(/^administrasi\s+/i, '')
+    .trim();
+}
+
+export async function resolveWilayahFromKodePos(item: KodePosSuggestion): Promise<{
+  provinceId: string;
+  provinsi: string;
+  kotaKabupaten: string;
+  kecamatan: string;
+  kelurahanDesa: string;
+  regencies: WilayahItem[];
+  districts: WilayahItem[];
+  villages: WilayahItem[];
+}> {
+  const targetProv = (item.province || '').trim().toLowerCase();
+  const matchedProvince =
+    INDONESIAN_PROVINCES.find((p) => p.name.toLowerCase() === targetProv) ||
+    INDONESIAN_PROVINCES.find(
+      (p) =>
+        targetProv &&
+        (p.name.toLowerCase().includes(targetProv) ||
+          targetProv.includes(p.name.toLowerCase()))
+    );
+
+  const provinceId = matchedProvince?.id || '';
+  const provinsiName = matchedProvince?.name || item.province || '';
+
+  let regencies: WilayahItem[] = [];
+  let matchedRegency: WilayahItem | undefined;
+  let districts: WilayahItem[] = [];
+  let matchedDistrict: WilayahItem | undefined;
+  let villages: WilayahItem[] = [];
+  let matchedVillage: WilayahItem | undefined;
+
+  if (provinceId) {
+    regencies = await fetchRegenciesByProvince(provinceId);
+    const targetRegBase = normalizeRegencyBase(item.regency || '');
+    const targetDistLower = (item.district || '').trim().toLowerCase();
+
+    const exactBaseCandidates = regencies.filter(
+      (r) => normalizeRegencyBase(r.name) === targetRegBase
+    );
+    const candidates =
+      exactBaseCandidates.length > 0
+        ? exactBaseCandidates
+        : regencies.filter((r) => normalizeRegencyBase(r.name).includes(targetRegBase));
+
+    if (candidates.length === 1) {
+      matchedRegency = candidates[0];
+      districts = await fetchDistrictsByRegency(matchedRegency.id);
+    } else if (candidates.length > 1) {
+      // Disambiguate Kota vs Kab. (e.g. Kota Bandung vs Kab. Bandung) by checking which contains the district
+      for (const cand of candidates) {
+        const candDistricts = await fetchDistrictsByRegency(cand.id);
+        const foundDist = candDistricts.find(
+          (d) =>
+            d.name.toLowerCase() === targetDistLower ||
+            d.name.toLowerCase().includes(targetDistLower) ||
+            (targetDistLower && targetDistLower.includes(d.name.toLowerCase()))
+        );
+        if (foundDist) {
+          matchedRegency = cand;
+          districts = candDistricts;
+          matchedDistrict = foundDist;
+          break;
+        }
+      }
+      if (!matchedRegency) {
+        matchedRegency = candidates[0];
+        districts = await fetchDistrictsByRegency(matchedRegency.id);
+      }
+    }
+
+    if (districts.length > 0 && !matchedDistrict && targetDistLower) {
+      matchedDistrict =
+        districts.find((d) => d.name.toLowerCase() === targetDistLower) ||
+        districts.find(
+          (d) =>
+            d.name.toLowerCase().includes(targetDistLower) ||
+            targetDistLower.includes(d.name.toLowerCase())
+        );
+    }
+
+    if (matchedDistrict) {
+      villages = await fetchVillagesByDistrict(matchedDistrict.id);
+      const targetVilLower = (item.village || '').trim().toLowerCase();
+      if (targetVilLower) {
+        matchedVillage =
+          villages.find((v) => v.name.toLowerCase() === targetVilLower) ||
+          villages.find(
+            (v) =>
+              v.name.toLowerCase().includes(targetVilLower) ||
+              targetVilLower.includes(v.name.toLowerCase())
+          );
+      }
+    }
+  }
+
+  return {
+    provinceId,
+    provinsi: provinsiName,
+    kotaKabupaten:
+      matchedRegency?.name || (item.regency ? formatWilayahName(item.regency) : ''),
+    kecamatan:
+      matchedDistrict?.name || (item.district ? formatWilayahName(item.district) : ''),
+    kelurahanDesa:
+      matchedVillage?.name || (item.village ? formatWilayahName(item.village) : ''),
+    regencies,
+    districts,
+    villages,
+  };
 }
