@@ -102,13 +102,13 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
             >
               <div className="relative aspect-[3/4] w-full overflow-hidden bg-travertine">
                 <img
-                  src={BRAND_ASSETS.editorialHero1}
-                  alt="Luna Signature Campaign"
+                  src={featuredProducts[0]?.primaryImage || BRAND_ASSETS.editorialHero1}
+                  alt={featuredProducts[0]?.rawName || 'Luna Signature Campaign'}
                   className="w-full h-full object-cover object-top transition-transform duration-1000 ease-expo group-hover:scale-105"
                 />
                 <div className="absolute top-3 left-3">
                   <span className="inline-block px-3 py-1 rounded-sm bg-white/95 text-[8.5px] font-medium uppercase tracking-[0.18em] text-obsidian">
-                    LUNA CAMPAIGN
+                    LUNA ATELIER
                   </span>
                 </div>
               </div>
@@ -116,9 +116,13 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
                 <p className="text-[9px] font-medium uppercase tracking-[0.18em] text-champagne">
                   AUTUMN / WINTER ’26
                 </p>
-                <h2 className="font-serif text-lg text-obsidian mt-0.5">Luna Signature</h2>
+                <h2 className="font-serif text-lg text-obsidian mt-0.5">
+                  {featuredProducts[0]?.rawName || 'Luna Signature'}
+                </h2>
                 <div className="mt-2.5 pt-2.5 border-t border-obsidian/10 flex items-center justify-between text-[11px]">
-                  <span className="font-serif font-semibold text-obsidian">41 Pieces</span>
+                  <span className="font-serif font-semibold text-obsidian">
+                    {featuredProducts[0]?.formattedPrice || '41 Pieces'}
+                  </span>
                   <span className="text-taupe group-hover:text-obsidian">Detail →</span>
                 </div>
               </div>
@@ -132,23 +136,27 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
               >
                 <div className="relative aspect-[3/4] w-full overflow-hidden bg-travertine">
                   <img
-                    src={BRAND_ASSETS.editorialHero2}
-                    alt="Kemayu Editorial Campaign"
+                    src={featuredProducts[1]?.primaryImage || BRAND_ASSETS.editorialHero2}
+                    alt={featuredProducts[1]?.rawName || 'Luna Couture Campaign'}
                     className="w-full h-full object-cover object-top transition-transform duration-1000 ease-expo group-hover:scale-105"
                   />
                   <div className="absolute top-3 left-3">
                     <span className="inline-block px-2.5 py-1 rounded-sm bg-white/95 text-[8px] font-medium uppercase tracking-[0.18em] text-obsidian">
-                      KEMAYU
+                      LUNA COUTURE
                     </span>
                   </div>
                 </div>
                 <div className="p-3.5 bg-white">
                   <p className="text-[8.5px] font-medium uppercase tracking-[0.18em] text-champagne">
-                    HERITAGE LINE
+                    SIGNATURE SERIES
                   </p>
-                  <h2 className="font-serif text-base text-obsidian mt-0.5">Kemayu Series</h2>
+                  <h2 className="font-serif text-base text-obsidian mt-0.5">
+                    {featuredProducts[1]?.rawName || 'Luna Reserve'}
+                  </h2>
                   <div className="mt-2 pt-2 border-t border-obsidian/10 flex items-center justify-between text-[10.5px]">
-                    <span className="font-serif font-semibold text-obsidian">10 Pieces</span>
+                    <span className="font-serif font-semibold text-obsidian">
+                      {featuredProducts[1]?.formattedPrice || '41 Pieces'}
+                    </span>
                     <span className="text-taupe group-hover:text-obsidian">Detail →</span>
                   </div>
                 </div>
