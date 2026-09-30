@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Menu, X, Search, ShoppingBag, Sparkles, User } from 'lucide-react';
+import { Menu, X, ShoppingBag, Sparkles, User } from 'lucide-react';
 import { BRAND_ASSETS } from '../data/products';
 import { CustomerProfile } from '../lib/supabase';
 
@@ -22,7 +22,6 @@ export const Navbar: React.FC<NavbarProps> = ({
   currentUser,
   onSelectBrand,
   onOpenCart,
-  onOpenSearch,
   onOpenContact,
   onNavigate,
 }) => {
@@ -128,14 +127,6 @@ export const Navbar: React.FC<NavbarProps> = ({
 
             {/* Right Utility Controls */}
             <div className="flex items-center gap-2.5 sm:gap-3.5">
-              <button
-                onClick={onOpenSearch}
-                aria-label="Search collection"
-                className="w-9 h-9 rounded-full bg-alabaster hover:bg-travertine flex items-center justify-center text-obsidian/75 hover:text-obsidian transition-colors"
-              >
-                <Search className="w-4 h-4 stroke-[1.5]" />
-              </button>
-
               <button
                 onClick={onOpenContact}
                 className="hidden xl:inline-block px-4 py-2 rounded-full border border-obsidian/15 text-[10.5px] uppercase tracking-[0.18em] text-obsidian hover:border-obsidian transition-colors"
