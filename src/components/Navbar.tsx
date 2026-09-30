@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Menu, X, Search, Heart, ShoppingBag, Sparkles, User } from 'lucide-react';
+import { Menu, X, Search, ShoppingBag, Sparkles, User } from 'lucide-react';
 import { BRAND_ASSETS } from '../data/products';
 import { CustomerProfile } from '../lib/supabase';
 
@@ -134,19 +134,6 @@ export const Navbar: React.FC<NavbarProps> = ({
                 className="w-9 h-9 rounded-full bg-alabaster hover:bg-travertine flex items-center justify-center text-obsidian/75 hover:text-obsidian transition-colors"
               >
                 <Search className="w-4 h-4 stroke-[1.5]" />
-              </button>
-
-              <button
-                onClick={() => handleNavBrand('WISHLIST')}
-                aria-label="Saved wishlist"
-                className="relative w-9 h-9 rounded-full bg-alabaster hover:bg-travertine flex items-center justify-center text-obsidian/75 hover:text-obsidian transition-colors"
-              >
-                <Heart className="w-4 h-4 stroke-[1.5]" />
-                {wishlistCount > 0 && (
-                  <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-champagne text-white text-[9px] font-medium flex items-center justify-center">
-                    {wishlistCount}
-                  </span>
-                )}
               </button>
 
               <button
