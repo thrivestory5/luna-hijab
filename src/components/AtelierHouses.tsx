@@ -148,28 +148,6 @@ const HousePanel: React.FC<HousePanelProps> = ({ house, onChoose }) => {
         </span>
       </div>
 
-      {/* Minimalist Slide Pagination Indicators */}
-      <div
-        className="absolute bottom-6 left-0 right-0 z-10 flex items-center justify-center gap-1.5 px-4 pointer-events-auto"
-        onClick={(e) => e.stopPropagation()}
-      >
-        {house.images.map((_, dotIdx) => (
-          <button
-            key={dotIdx}
-            type="button"
-            aria-label={`Slide ${dotIdx + 1} - ${house.name}`}
-            onClick={(e) => {
-              e.stopPropagation();
-              setActiveIdx(dotIdx);
-            }}
-            className={`transition-all duration-500 rounded-full ${
-              dotIdx === activeIdx
-                ? 'w-7 h-1 bg-white shadow-xs'
-                : 'w-1.5 h-1 bg-white/40 hover:bg-white/70'
-            }`}
-          />
-        ))}
-      </div>
     </article>
   );
 };
