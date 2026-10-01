@@ -1,40 +1,40 @@
 import React from 'react';
-import { BRAND_ASSETS } from '../data/products';
+import { ArrowRight } from 'lucide-react';
 
 interface AtelierHousesProps {
   onSelectHouse: (brand: string) => void;
   onNavigate?: (path: string) => void;
 }
 
-const HOUSES = [
+interface HouseItem {
+  id: string;
+  name: string;
+  image: string;
+  tintColor: string;
+  alt: string;
+}
+
+const HOUSES: HouseItem[] = [
   {
     id: 'Luna',
-    badge: 'LUNA ATELIER',
-    overline: 'SIGNATURE SILK & COUTURE RESERVE',
-    title: 'HOUSE I — LUNA COUTURE',
-    subtitle: 'Flowing Matte Silk Crepes, Organza Overlays & Hand-Embellished Gamis',
-    priceRange: '41 Archive Pieces',
-    image: 'https://lunahijab.co.id/wp-content/uploads/2026/09/PO-KIANA-1-H-768x1152.png',
+    name: 'Luna',
+    image: 'https://lunahijab.co.id/wp-content/uploads/2026/06/K-scaled.jpg',
+    tintColor: '#838271',
+    alt: 'Luna Couture Collection',
   },
   {
     id: 'Kemayu',
-    badge: 'KEMAYU ATELIER',
-    overline: 'HERITAGE BOTANICAL WEAVE',
-    title: 'HOUSE II — KEMAYU',
-    subtitle: 'Modern Nusantara Romance & Breathable Botanical Rayon Twills',
-    priceRange: '10 Archive Pieces',
-    image:
-      'https://lunahijab.co.id/wp-content/uploads/2026/08/PO-SELYN-1-C-scaled-e1786432937748.png',
+    name: 'Kemayu',
+    image: 'https://lunahijab.co.id/wp-content/uploads/2026/05/EDIT-AURELLIA-1-B.png',
+    tintColor: '#9b938e',
+    alt: 'Kemayu Heritage Collection',
   },
   {
     id: 'GZ',
-    badge: 'GZ ATELIER',
-    overline: 'ARCHITECTURAL TAILORING',
-    title: 'HOUSE III — GZ TAILORING',
-    subtitle: 'Structured Blazers, Two-Piece Skirt Ensembles & Urban Separates',
-    priceRange: '21 Archive Pieces',
-    image:
-      'https://lunahijab.co.id/wp-content/uploads/2026/06/SET-ROK.-GZ-JXIU-70015-A-scaled-e1782124059707.jpg',
+    name: 'GZ',
+    image: 'https://lunahijab.co.id/wp-content/uploads/2026/06/C5-scaled.jpg',
+    tintColor: '#d3cbc5',
+    alt: 'GZ Architectural Tailoring Collection',
   },
 ];
 
@@ -52,75 +52,55 @@ export const AtelierHouses: React.FC<AtelierHousesProps> = ({ onSelectHouse, onN
   };
 
   return (
-    <section id="atelier-houses" className="py-24 md:py-32 border-b border-obsidian/10">
-      <div className="max-w-[1400px] mx-auto px-6 md:px-12">
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-14 gap-4">
-          <div>
-            <p className="text-[10px] uppercase tracking-[0.3em] text-taupe mb-2">THE HOUSES</p>
-            <h2 className="font-serif text-3xl sm:text-4xl font-light text-obsidian">
-              Three Expressions of Modesty
-            </h2>
-          </div>
-          <a
-            href={BRAND_ASSETS.whatsappConcierge}
-            target="_blank"
-            rel="noreferrer"
-            className="text-[11px] uppercase tracking-[0.22em] text-obsidian/60 hover:text-obsidian border-b border-obsidian/20 pb-1 transition-colors self-start sm:self-auto"
+    <section id="atelier-houses" className="w-full relative overflow-hidden bg-obsidian">
+      {/* 3-Column Edge-to-Edge Full Bleed Section matching lunahijab.co.id */}
+      <div className="grid grid-cols-1 md:grid-cols-3 w-full gap-0">
+        {HOUSES.map((house) => (
+          <article
+            key={house.id}
+            onClick={() => handleChoose(house.id)}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                handleChoose(house.id);
+              }
+            }}
+            className="group relative cursor-pointer overflow-hidden min-h-[440px] sm:min-h-[520px] md:min-h-[750px] lg:min-h-[85vh] xl:min-h-[90vh] flex items-center justify-center focus:outline-none"
           >
-            Private Styling Consultation
-          </a>
-        </div>
+            {/* Background Image */}
+            <img
+              src={house.image}
+              alt={house.alt}
+              loading="lazy"
+              className="absolute inset-0 w-full h-full object-cover object-center transition-transform duration-1000 ease-out group-hover:scale-105"
+            />
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-7 md:gap-8">
-          {HOUSES.map((house) => (
-            <article
-              key={house.id}
-              onClick={() => handleChoose(house.id)}
-              className="group cursor-pointer flex flex-col rounded-2xl overflow-hidden bg-white border border-obsidian/[0.08] shadow-[0_4px_24px_rgba(24,22,21,0.03)] hover:shadow-[0_12px_36px_rgba(24,22,21,0.08)] transition-all duration-500"
-            >
-              <div className="relative aspect-[3/4] w-full overflow-hidden bg-travertine">
-                <img
-                  src={house.image}
-                  alt={house.title}
-                  loading="lazy"
-                  className="w-full h-full object-cover object-top transition-transform duration-1000 ease-expo group-hover:scale-[1.04]"
-                />
-                <div className="absolute top-3.5 left-3.5 pointer-events-none">
-                  <span className="inline-block px-3 py-1.5 rounded-sm bg-white/95 backdrop-blur-xs text-[9px] font-sans font-medium uppercase tracking-[0.18em] text-obsidian shadow-xs">
-                    {house.badge}
-                  </span>
-                </div>
-              </div>
+            {/* Tint Overlay (matching original dim ratio + gradient) */}
+            <div
+              className="absolute inset-0 opacity-30 transition-opacity duration-700 group-hover:opacity-40"
+              style={{ backgroundColor: house.tintColor }}
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-black/30 transition-opacity duration-500 group-hover:from-black/75 group-hover:via-black/30" />
 
-              <div className="p-5 bg-white flex-1 flex flex-col justify-between">
-                <div>
-                  <p className="text-[9.5px] font-sans font-medium uppercase tracking-[0.18em] text-champagne">
-                    {house.overline}
-                  </p>
-                  <h3 className="font-serif text-[1.35rem] leading-snug font-normal text-obsidian mt-1 group-hover:text-brass transition-colors">
-                    {house.title}
-                  </h3>
-                  <p className="text-[11.5px] text-taupe font-light mt-1 line-clamp-1">
-                    {house.subtitle}
-                  </p>
-                </div>
+            {/* Centered Brand Name & Cue */}
+            <div className="relative z-10 flex flex-col items-center justify-center p-6 text-center select-none">
+              <h2 className="font-display text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl text-white font-semibold sm:font-bold tracking-wide drop-shadow-[0_4px_20px_rgba(0,0,0,0.65)] transition-transform duration-500 group-hover:scale-105">
+                {house.name}
+              </h2>
 
-                <div className="mt-4 pt-3.5 border-t border-obsidian/10 flex items-center justify-between">
-                  <span className="font-serif text-[1.05rem] font-semibold tracking-tight text-obsidian">
-                    {house.priceRange}
-                  </span>
-                  <span className="text-[11px] font-light text-taupe group-hover:text-obsidian transition-colors inline-flex items-center gap-1">
-                    <span>Detail</span>
-                    <span className="transition-transform duration-300 group-hover:translate-x-0.5">
-                      →
-                    </span>
-                  </span>
-                </div>
-              </div>
-            </article>
-          ))}
-        </div>
+              {/* Elegant Interactive Hover Cue */}
+              <span className="mt-4 inline-flex items-center gap-2 px-5 py-2 rounded-full bg-white/20 backdrop-blur-md border border-white/40 text-[10px] sm:text-[11px] font-sans font-medium uppercase tracking-[0.25em] text-white opacity-90 md:opacity-0 md:group-hover:opacity-100 md:translate-y-2 md:group-hover:translate-y-0 transition-all duration-300 shadow-md">
+                <span>Jelajahi {house.name}</span>
+                <ArrowRight className="w-3.5 h-3.5 transition-transform duration-300 group-hover:translate-x-1" />
+              </span>
+            </div>
+          </article>
+        ))}
       </div>
     </section>
   );
 };
+
+export default AtelierHouses;
