@@ -3,6 +3,7 @@ import { BRAND_ASSETS } from '../data/products';
 
 interface AtelierHousesProps {
   onSelectHouse: (brand: string) => void;
+  onNavigate?: (path: string) => void;
 }
 
 const HOUSES = [
@@ -37,12 +38,16 @@ const HOUSES = [
   },
 ];
 
-export const AtelierHouses: React.FC<AtelierHousesProps> = ({ onSelectHouse }) => {
+export const AtelierHouses: React.FC<AtelierHousesProps> = ({ onSelectHouse, onNavigate }) => {
   const handleChoose = (brand: string) => {
     onSelectHouse(brand);
-    const archive = document.getElementById('collection-archive');
-    if (archive) {
-      archive.scrollIntoView({ behavior: 'smooth' });
+    if (onNavigate) {
+      onNavigate('/katalog');
+    } else {
+      const archive = document.getElementById('collection-archive');
+      if (archive) {
+        archive.scrollIntoView({ behavior: 'smooth' });
+      }
     }
   };
 

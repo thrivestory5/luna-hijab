@@ -7,6 +7,7 @@ interface NavbarProps {
   cartCount: number;
   wishlistCount: number;
   activeBrand: string;
+  currentRoute?: string;
   currentUser: CustomerProfile | null;
   onSelectBrand: (brand: string) => void;
   onOpenCart: () => void;
@@ -19,6 +20,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   cartCount,
   wishlistCount,
   activeBrand,
+  currentRoute = '/',
   currentUser,
   onSelectBrand,
   onOpenCart,
@@ -39,17 +41,24 @@ export const Navbar: React.FC<NavbarProps> = ({
   const handleNavBrand = (brand: string) => {
     onSelectBrand(brand);
     setMobileMenuOpen(false);
-    const el = document.getElementById('collection-archive');
-    if (el) {
-      el.scrollIntoView({ behavior: 'smooth' });
-    }
+    onNavigate('/katalog');
   };
 
   const scrollToSection = (id: string) => {
     setMobileMenuOpen(false);
-    const el = document.getElementById(id);
-    if (el) {
-      el.scrollIntoView({ behavior: 'smooth' });
+    if (currentRoute !== '/') {
+      onNavigate('/');
+      setTimeout(() => {
+        const el = document.getElementById(id);
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth' });
+        }
+      }, 150);
+    } else {
+      const el = document.getElementById(id);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth' });
+      }
     }
   };
 
@@ -72,7 +81,14 @@ export const Navbar: React.FC<NavbarProps> = ({
         <div className="max-w-[1400px] mx-auto px-5 md:px-10">
           <div className="rounded-2xl bg-white/85 backdrop-blur-md border border-obsidian/[0.08] px-5 md:px-8 py-3.5 shadow-[0_4px_24px_rgba(28,24,21,0.04)] flex items-center justify-between">
             {/* Left Brand Emblem + Wordmark */}
-            <a href="#top" className="flex items-center gap-3 group focus:outline-none">
+            <a
+              href="/"
+              onClick={(e) => {
+                e.preventDefault();
+                onNavigate('/');
+              }}
+              className="flex items-center gap-3 group focus:outline-none cursor-pointer"
+            >
               <img
                 src={BRAND_ASSETS.logoCompact}
                 alt="Luna Indonesia"
@@ -90,13 +106,34 @@ export const Navbar: React.FC<NavbarProps> = ({
 
             {/* Center Navigation Pills */}
             <nav className="hidden lg:flex items-center gap-1 bg-alabaster/80 p-1 rounded-full border border-obsidian/[0.06]">
+              <button
+                onClick={() => onNavigate('/')}
+                className={`px-4 py-1.5 rounded-full text-[11px] uppercase tracking-[0.18em] transition-all duration-300 ${
+                  currentRoute === '/'
+                    ? 'bg-obsidian text-alabaster font-medium shadow-xs'
+                    : 'text-obsidian/65 hover:text-obsidian'
+                }`}
+              >
+                Beranda
+              </button>
+
+              <button
+                onClick={() => handleNavBrand('ALL')}
+                className={`px-4 py-1.5 rounded-full text-[11px] uppercase tracking-[0.18em] transition-all duration-300 ${
+                  currentRoute === '/katalog' && activeBrand === 'ALL'
+                    ? 'bg-obsidian text-alabaster font-medium shadow-xs'
+                    : 'text-obsidian/65 hover:text-obsidian'
+                }`}
+              >
+                Katalog
+              </button>
+
               {[
-                { label: 'All Collection', value: 'ALL' },
                 { label: 'Luna', value: 'Luna' },
                 { label: 'Kemayu', value: 'Kemayu' },
                 { label: 'GZ', value: 'GZ' },
               ].map((item) => {
-                const isActive = activeBrand === item.value;
+                const isActive = currentRoute === '/katalog' && activeBrand === item.value;
                 return (
                   <button
                     key={item.value}
@@ -111,6 +148,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                   </button>
                 );
               })}
+
               <button
                 onClick={() => scrollToSection('runway-lookbook')}
                 className="px-4 py-1.5 rounded-full text-[11px] uppercase tracking-[0.18em] text-obsidian/65 hover:text-obsidian transition-colors"
@@ -211,9 +249,18 @@ export const Navbar: React.FC<NavbarProps> = ({
             </button>
           </div>
 
-          <div className="my-auto space-y-5">
+          <div className="my-auto space-y-4">
+            <button
+              onClick={() => {
+                setMobileMenuOpen(false);
+                onNavigate('/');
+              }}
+              className="block w-full text-left font-serif text-3xl font-normal text-obsidian hover:text-brass transition-colors"
+            >
+              Beranda
+            </button>
             {[
-              { title: 'All Collection (72)', val: 'ALL' },
+              { title: 'Katalog Koleksi (72)', val: 'ALL' },
               { title: 'Luna Couture (41)', val: 'Luna' },
               { title: 'Kemayu Heritage (10)', val: 'Kemayu' },
               { title: 'GZ Tailoring (21)', val: 'GZ' },

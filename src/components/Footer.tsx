@@ -5,14 +5,19 @@ import { BRAND_ASSETS } from '../data/products';
 interface FooterProps {
   onSelectBrand: (brand: string) => void;
   onOpenConcierge: () => void;
+  onNavigate?: (path: string) => void;
 }
 
-export const Footer: React.FC<FooterProps> = ({ onSelectBrand, onOpenConcierge }) => {
+export const Footer: React.FC<FooterProps> = ({ onSelectBrand, onOpenConcierge, onNavigate }) => {
   const handleBrandJump = (brand: string) => {
     onSelectBrand(brand);
-    const el = document.getElementById('collection-archive');
-    if (el) {
-      el.scrollIntoView({ behavior: 'smooth' });
+    if (onNavigate) {
+      onNavigate('/katalog');
+    } else {
+      const el = document.getElementById('collection-archive');
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth' });
+      }
     }
   };
 

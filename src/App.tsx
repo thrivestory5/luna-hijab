@@ -1,11 +1,12 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import Lenis from 'lenis';
+import { ArrowRight } from 'lucide-react';
 import { PRODUCTS, Product } from './data/products';
 import { AdminProfile, CustomerProfile, fetchCatalogProducts } from './lib/supabase';
 import { Navbar } from './components/Navbar';
 import { HeroSection } from './components/HeroSection';
 import { AtelierHouses } from './components/AtelierHouses';
-import { CollectionArchive } from './components/CollectionArchive';
+import { KatalogPage } from './components/KatalogPage';
 import { PinnedLookbook } from './components/PinnedLookbook';
 import { CraftsmanshipSection } from './components/CraftsmanshipSection';
 import { ProductModal } from './components/ProductModal';
@@ -15,8 +16,9 @@ import { Footer } from './components/Footer';
 import { CustomerAuthPage } from './components/CustomerAuthPage';
 import { AdminPortalPage } from './components/AdminPortalPage';
 
-const normalizeRoute = (pathname: string): '/' | '/login' | '/admlog' | '/admin' => {
+const normalizeRoute = (pathname: string): '/' | '/katalog' | '/login' | '/admlog' | '/admin' => {
   const clean = pathname.replace(/\/+$/, '').toLowerCase() || '/';
+  if (clean === '/katalog') return '/katalog';
   if (clean === '/login') return '/login';
   if (clean === '/admlog') return '/admlog';
   if (clean === '/admin') return '/admin';
@@ -24,7 +26,7 @@ const normalizeRoute = (pathname: string): '/' | '/login' | '/admlog' | '/admin'
 };
 
 export function App() {
-  const [currentRoute, setCurrentRoute] = useState<'/' | '/login' | '/admlog' | '/admin'>('/');
+  const [currentRoute, setCurrentRoute] = useState<'/' | '/katalog' | '/login' | '/admlog' | '/admin'>('/');
   const [catalogProducts, setCatalogProducts] = useState<Product[]>(PRODUCTS);
   const [currentUser, setCurrentUser] = useState<CustomerProfile | null>(null);
   const [adminUser, setAdminUser] = useState<AdminProfile | null>(null);
@@ -259,12 +261,9 @@ export function App() {
     setCartItems([]);
   }, []);
 
-  const handleOpenSearch = () => {
-    const archive = document.getElementById('collection-archive');
-    if (archive) {
-      archive.scrollIntoView({ behavior: 'smooth' });
-    }
-  };
+  const handleOpenSearch = useCallback(() => {
+    handleNavigate('/katalog');
+  }, [handleNavigate]);
 
   const totalCartCount = cartItems.reduce((sum, i) => sum + i.quantity, 0);
 
@@ -295,8 +294,12 @@ export function App() {
         cartCount={totalCartCount}
         wishlistCount={wishlist.length}
         activeBrand={activeBrand}
+        currentRoute={currentRoute}
         currentUser={currentUser}
-        onSelectBrand={setActiveBrand}
+        onSelectBrand={(brand) => {
+          setActiveBrand(brand);
+          handleNavigate('/katalog');
+        }}
         onOpenCart={() => setCartOpen(true)}
         onOpenSearch={handleOpenSearch}
         onOpenContact={() => setConciergeOpen(true)}
@@ -304,48 +307,82 @@ export function App() {
       />
 
       <main>
-        <HeroSection
-          featuredProducts={catalogProducts.slice(0, 4)}
-          wishlist={wishlist}
-          onToggleWishlist={handleToggleWishlist}
-          onSelectProduct={(p) => setSelectedProduct(p)}
-          onExploreArchive={() => {
-            const el = document.getElementById('collection-archive');
-            if (el) el.scrollIntoView({ behavior: 'smooth' });
-          }}
-          onExploreLookbook={() => {
-            const el = document.getElementById('runway-lookbook');
-            if (el) el.scrollIntoView({ behavior: 'smooth' });
-          }}
-        />
+        {currentRoute === '/katalog' ? (
+          <KatalogPage
+            products={catalogProducts}
+            activeBrand={activeBrand}
+            onSelectBrand={setActiveBrand}
+            searchQuery={searchQuery}
+            onSearchChange={setSearchQuery}
+            wishlist={wishlist}
+            onToggleWishlist={handleToggleWishlist}
+            onSelectProduct={(p) => setSelectedProduct(p)}
+            onQuickAdd={handleQuickAdd}
+            onNavigate={handleNavigate}
+          />
+        ) : (
+          <>
+            <HeroSection
+              featuredProducts={catalogProducts.slice(0, 4)}
+              onSelectProduct={(p) => setSelectedProduct(p)}
+              onExploreArchive={() => handleNavigate('/katalog')}
+              onExploreLookbook={() => {
+                const el = document.getElementById('runway-lookbook');
+                if (el) el.scrollIntoView({ behavior: 'smooth' });
+              }}
+            />
 
-        <AtelierHouses onSelectHouse={(brand) => setActiveBrand(brand)} />
+            <AtelierHouses
+              onSelectHouse={(brand) => {
+                setActiveBrand(brand);
+                handleNavigate('/katalog');
+              }}
+              onNavigate={handleNavigate}
+            />
 
-        <CollectionArchive
-          products={catalogProducts}
-          activeBrand={activeBrand}
-          onSelectBrand={setActiveBrand}
-          searchQuery={searchQuery}
-          onSearchChange={setSearchQuery}
-          wishlist={wishlist}
-          onToggleWishlist={handleToggleWishlist}
-          onSelectProduct={(p) => setSelectedProduct(p)}
-          onQuickAdd={handleQuickAdd}
-        />
+            <PinnedLookbook
+              products={catalogProducts}
+              wishlist={wishlist}
+              onToggleWishlist={handleToggleWishlist}
+              onSelectProduct={(p) => setSelectedProduct(p)}
+            />
 
-        <PinnedLookbook
-          products={catalogProducts}
-          wishlist={wishlist}
-          onToggleWishlist={handleToggleWishlist}
-          onSelectProduct={(p) => setSelectedProduct(p)}
-        />
+            <CraftsmanshipSection onOpenConcierge={() => setConciergeOpen(true)} />
 
-        <CraftsmanshipSection onOpenConcierge={() => setConciergeOpen(true)} />
+            {/* Exclusive Invitation to explore the full 72-piece catalog */}
+            <section className="py-16 bg-white/70 border-t border-b border-obsidian/[0.06]">
+              <div className="max-w-[1400px] mx-auto px-5 md:px-10 text-center space-y-5">
+                <span className="text-[10px] tracking-[0.28em] uppercase text-brass font-medium">
+                  ARCHIVE CATALOGUE
+                </span>
+                <h2 className="font-serif text-3xl sm:text-4xl text-obsidian font-normal">
+                  Jelajahi Seluruh 72 Mahakarya Busana Muslimah
+                </h2>
+                <p className="text-xs sm:text-sm text-taupe font-light max-w-xl mx-auto leading-relaxed">
+                  Temukan koleksi lengkap Luna Couture, Kemayu Heritage, dan GZ Tailoring dengan filter warna, material sutra premium, dan panduan ukuran eksklusif.
+                </p>
+                <div className="pt-2">
+                  <button
+                    onClick={() => handleNavigate('/katalog')}
+                    className="inline-flex items-center gap-2.5 px-8 py-4 bg-obsidian text-alabaster text-[11px] uppercase tracking-[0.24em] font-medium rounded-full shadow-lg hover:bg-brass transition-all duration-300 group"
+                  >
+                    <span>Buka Halaman Katalog</span>
+                    <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                  </button>
+                </div>
+              </div>
+            </section>
+          </>
+        )}
       </main>
 
       <Footer
-        onSelectBrand={setActiveBrand}
+        onSelectBrand={(brand) => {
+          setActiveBrand(brand);
+          handleNavigate('/katalog');
+        }}
         onOpenConcierge={() => setConciergeOpen(true)}
+        onNavigate={handleNavigate}
       />
 
       <ProductModal
