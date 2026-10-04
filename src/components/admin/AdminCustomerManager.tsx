@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import {
   Users,
   Search,
@@ -504,133 +505,146 @@ export const AdminCustomerManager: React.FC<AdminCustomerManagerProps> = ({
       </div>
 
       {/* Customer Full Dossier Modal */}
-      {selectedCustomer && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
-          <div className="relative w-full max-w-lg bg-white rounded-3xl p-6 sm:p-8 shadow-2xl border border-obsidian/10">
-            <button
-              type="button"
-              onClick={() => setSelectedCustomer(null)}
-              className="absolute right-5 top-5 text-taupe hover:text-obsidian"
-            >
-              <X className="w-5 h-5" />
-            </button>
+      {selectedCustomer &&
+        createPortal(
+          <div
+            className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-black/65 backdrop-blur-sm animate-fadeIn"
+            onClick={(e) => {
+              if (e.target === e.currentTarget) setSelectedCustomer(null);
+            }}
+          >
+            <div className="relative w-full max-w-lg bg-white rounded-3xl p-6 sm:p-8 shadow-2xl border border-obsidian/10">
+              <button
+                type="button"
+                onClick={() => setSelectedCustomer(null)}
+                className="absolute right-5 top-5 w-8 h-8 rounded-full bg-alabaster hover:bg-obsidian/10 flex items-center justify-center text-taupe hover:text-obsidian transition-colors cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
 
-            <div className="flex items-center gap-4 mb-6 pb-6 border-b border-obsidian/10">
-              <div className="w-14 h-14 rounded-full bg-obsidian text-champagne border border-champagne/40 flex items-center justify-center font-serif text-xl font-medium shrink-0">
-                {selectedCustomer.nama ? selectedCustomer.nama.charAt(0) : 'M'}
-              </div>
-              <div>
-                <span className="text-[9.5px] uppercase tracking-[0.24em] text-champagne font-medium">
-                  VIP CLIENTELE DOSSIER
-                </span>
-                <h2 className="font-serif text-2xl text-obsidian">{selectedCustomer.nama}</h2>
-                <p className="text-xs text-taupe font-mono mt-0.5">
-                  ID: {selectedCustomer.id.slice(0, 18)}...
-                </p>
-              </div>
-            </div>
-
-            <div className="space-y-4 text-xs">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="p-3.5 rounded-xl bg-alabaster border border-obsidian/[0.06]">
-                  <span className="text-[10px] uppercase tracking-[0.16em] text-taupe block mb-1">
-                    Email Address
-                  </span>
-                  <p className="font-medium text-obsidian break-all">{selectedCustomer.email}</p>
+              <div className="flex items-center gap-4 mb-6 pb-6 border-b border-obsidian/10">
+                <div className="w-14 h-14 rounded-full bg-obsidian text-champagne border border-champagne/40 flex items-center justify-center font-serif text-xl font-medium shrink-0">
+                  {selectedCustomer.nama ? selectedCustomer.nama.charAt(0) : 'M'}
                 </div>
-                <div className="p-3.5 rounded-xl bg-alabaster border border-obsidian/[0.06]">
-                  <span className="text-[10px] uppercase tracking-[0.16em] text-taupe block mb-1">
-                    WhatsApp Phone
+                <div>
+                  <span className="text-[9.5px] uppercase tracking-[0.24em] text-champagne font-medium">
+                    VIP CLIENTELE DOSSIER
                   </span>
-                  <p className="font-mono font-medium text-emerald-700">
-                    {selectedCustomer.nomer_whatsapp}
+                  <h2 className="font-serif text-2xl text-obsidian">{selectedCustomer.nama}</h2>
+                  <p className="text-xs text-taupe font-mono mt-0.5">
+                    ID: {selectedCustomer.id.slice(0, 18)}...
                   </p>
                 </div>
               </div>
 
-              <div className="p-4 rounded-xl bg-alabaster border border-obsidian/[0.06] space-y-2">
-                <span className="text-[10px] uppercase tracking-[0.16em] text-taupe block">
-                  Couture Delivery Destination
-                </span>
-                <p className="text-obsidian font-medium leading-relaxed">
-                  {selectedCustomer.alamat}
-                </p>
-                <div className="grid grid-cols-2 gap-2 pt-2 border-t border-obsidian/[0.06] text-[11px] text-taupe">
-                  <div>
-                    <span className="block text-[9px] uppercase">Kelurahan / Desa:</span>
-                    <strong className="text-obsidian">{selectedCustomer.kelurahan_desa || '-'}</strong>
+              <div className="space-y-4 text-xs">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="p-3.5 rounded-xl bg-alabaster border border-obsidian/[0.06]">
+                    <span className="text-[10px] uppercase tracking-[0.16em] text-taupe block mb-1">
+                      Email Address
+                    </span>
+                    <p className="font-medium text-obsidian break-all">{selectedCustomer.email}</p>
                   </div>
-                  <div>
-                    <span className="block text-[9px] uppercase">Kecamatan:</span>
-                    <strong className="text-obsidian">{selectedCustomer.kecamatan || '-'}</strong>
+                  <div className="p-3.5 rounded-xl bg-alabaster border border-obsidian/[0.06]">
+                    <span className="text-[10px] uppercase tracking-[0.16em] text-taupe block mb-1">
+                      WhatsApp Phone
+                    </span>
+                    <p className="font-mono font-medium text-emerald-700">
+                      {selectedCustomer.nomer_whatsapp}
+                    </p>
                   </div>
-                  <div>
-                    <span className="block text-[9px] uppercase">Kota / Kabupaten:</span>
-                    <strong className="text-obsidian">{selectedCustomer.kota_kabupaten}</strong>
+                </div>
+
+                <div className="p-4 rounded-xl bg-alabaster border border-obsidian/[0.06] space-y-2">
+                  <span className="text-[10px] uppercase tracking-[0.16em] text-taupe block">
+                    Couture Delivery Destination
+                  </span>
+                  <p className="text-obsidian font-medium leading-relaxed">
+                    {selectedCustomer.alamat}
+                  </p>
+                  <div className="grid grid-cols-2 gap-2 pt-2 border-t border-obsidian/[0.06] text-[11px] text-taupe">
+                    <div>
+                      <span className="block text-[9px] uppercase">Kelurahan / Desa:</span>
+                      <strong className="text-obsidian">{selectedCustomer.kelurahan_desa || '-'}</strong>
+                    </div>
+                    <div>
+                      <span className="block text-[9px] uppercase">Kecamatan:</span>
+                      <strong className="text-obsidian">{selectedCustomer.kecamatan || '-'}</strong>
+                    </div>
+                    <div>
+                      <span className="block text-[9px] uppercase">Kota / Kabupaten:</span>
+                      <strong className="text-obsidian">{selectedCustomer.kota_kabupaten}</strong>
+                    </div>
+                    <div>
+                      <span className="block text-[9px] uppercase">Provinsi & Kode Pos:</span>
+                      <strong className="text-obsidian">
+                        {selectedCustomer.provinsi} ({selectedCustomer.kode_pos})
+                      </strong>
+                    </div>
                   </div>
-                  <div>
-                    <span className="block text-[9px] uppercase">Provinsi & Kode Pos:</span>
-                    <strong className="text-obsidian">
-                      {selectedCustomer.provinsi} ({selectedCustomer.kode_pos})
+                </div>
+
+                <div className="flex items-center justify-between p-3.5 rounded-xl bg-champagne/10 border border-champagne/20">
+                  <span className="text-[11px] text-brass">
+                    Joined Maison Registry:{' '}
+                    <strong>
+                      {new Date(selectedCustomer.created_at).toLocaleDateString('en-US', {
+                        month: 'long',
+                        day: 'numeric',
+                        year: 'numeric',
+                      })}
                     </strong>
-                  </div>
+                  </span>
+                  <span className="px-2 py-0.5 rounded text-[9.5px] uppercase tracking-[0.16em] bg-champagne/30 text-brass font-medium">
+                    Verified Member
+                  </span>
                 </div>
               </div>
 
-              <div className="flex items-center justify-between p-3.5 rounded-xl bg-champagne/10 border border-champagne/20">
-                <span className="text-[11px] text-brass">
-                  Joined Maison Registry:{' '}
-                  <strong>
-                    {new Date(selectedCustomer.created_at).toLocaleDateString('en-US', {
-                      month: 'long',
-                      day: 'numeric',
-                      year: 'numeric',
-                    })}
-                  </strong>
-                </span>
-                <span className="px-2 py-0.5 rounded text-[9.5px] uppercase tracking-[0.16em] bg-champagne/30 text-brass font-medium">
-                  Verified Member
-                </span>
+              <div className="pt-6 mt-6 border-t border-obsidian/10 flex items-center justify-between">
+                <a
+                  href={`https://wa.me/${selectedCustomer.nomer_whatsapp.replace(/\D/g, '')}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-emerald-600 text-alabaster text-xs uppercase tracking-[0.16em] font-medium hover:bg-emerald-700 transition-colors"
+                >
+                  <MessageCircle className="w-4 h-4" />
+                  <span>Message on WhatsApp</span>
+                </a>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEditingCustomer(selectedCustomer);
+                    setSelectedCustomer(null);
+                  }}
+                  className="px-4 py-2.5 rounded-xl border border-obsidian/15 hover:border-obsidian text-xs uppercase tracking-[0.16em] transition-colors cursor-pointer"
+                >
+                  Edit Profile
+                </button>
               </div>
             </div>
-
-            <div className="pt-6 mt-6 border-t border-obsidian/10 flex items-center justify-between">
-              <a
-                href={`https://wa.me/${selectedCustomer.nomer_whatsapp.replace(/\D/g, '')}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-emerald-600 text-alabaster text-xs uppercase tracking-[0.16em] font-medium hover:bg-emerald-700 transition-colors"
-              >
-                <MessageCircle className="w-4 h-4" />
-                <span>Message on WhatsApp</span>
-              </a>
-
-              <button
-                type="button"
-                onClick={() => {
-                  setEditingCustomer(selectedCustomer);
-                  setSelectedCustomer(null);
-                }}
-                className="px-4 py-2.5 rounded-xl border border-obsidian/15 hover:border-obsidian text-xs uppercase tracking-[0.16em] transition-colors"
-              >
-                Edit Profile
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+          </div>,
+          document.body
+        )}
 
       {/* Edit Customer Modal */}
-      {editingCustomer && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
-          <div className="relative w-full max-w-xl bg-white rounded-3xl p-6 sm:p-8 shadow-2xl border border-obsidian/10 max-h-[90vh] overflow-y-auto">
-            <button
-              type="button"
-              onClick={() => setEditingCustomer(null)}
-              className="absolute right-5 top-5 text-taupe hover:text-obsidian"
-            >
-              <X className="w-5 h-5" />
-            </button>
+      {editingCustomer &&
+        createPortal(
+          <div
+            className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-black/65 backdrop-blur-sm animate-fadeIn"
+            onClick={(e) => {
+              if (e.target === e.currentTarget) setEditingCustomer(null);
+            }}
+          >
+            <div className="relative w-full max-w-xl bg-white rounded-3xl p-6 sm:p-8 shadow-2xl border border-obsidian/10 max-h-[90vh] overflow-y-auto">
+              <button
+                type="button"
+                onClick={() => setEditingCustomer(null)}
+                className="absolute right-5 top-5 w-8 h-8 rounded-full bg-alabaster hover:bg-obsidian/10 flex items-center justify-center text-taupe hover:text-obsidian transition-colors cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
 
             <div className="mb-6">
               <span className="text-[10px] uppercase tracking-[0.24em] text-champagne font-medium">
@@ -797,20 +811,27 @@ export const AdminCustomerManager: React.FC<AdminCustomerManagerProps> = ({
               </div>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Add New VIP Client Modal */}
-      {isAddingNew && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
-          <div className="relative w-full max-w-xl bg-white rounded-3xl p-6 sm:p-8 shadow-2xl border border-obsidian/10 max-h-[90vh] overflow-y-auto">
-            <button
-              type="button"
-              onClick={() => setIsAddingNew(false)}
-              className="absolute right-5 top-5 text-taupe hover:text-obsidian"
-            >
-              <X className="w-5 h-5" />
-            </button>
+      {isAddingNew &&
+        createPortal(
+          <div
+            className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-black/65 backdrop-blur-sm animate-fadeIn"
+            onClick={(e) => {
+              if (e.target === e.currentTarget) setIsAddingNew(false);
+            }}
+          >
+            <div className="relative w-full max-w-xl bg-white rounded-3xl p-6 sm:p-8 shadow-2xl border border-obsidian/10 max-h-[90vh] overflow-y-auto">
+              <button
+                type="button"
+                onClick={() => setIsAddingNew(false)}
+                className="absolute right-5 top-5 w-8 h-8 rounded-full bg-alabaster hover:bg-obsidian/10 flex items-center justify-center text-taupe hover:text-obsidian transition-colors cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
 
             <div className="mb-6">
               <span className="text-[10px] uppercase tracking-[0.24em] text-champagne font-medium">
@@ -987,7 +1008,8 @@ export const AdminCustomerManager: React.FC<AdminCustomerManagerProps> = ({
               </div>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

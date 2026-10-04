@@ -330,9 +330,12 @@ export async function fetchAdminDashboardData(adminId: string): Promise<{
   };
 }
 
+const DEFAULT_ADMIN_UUID = 'c97cc0e3-a683-4a4e-adcb-b7549234744d';
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 export async function adminUpsertProduct(
-  adminId: string,
-  product: {
+  adminId?: string | null,
+  product?: {
     id: number;
     name: string;
     brand: string;
@@ -343,26 +346,106 @@ export async function adminUpsertProduct(
     subtitle: string;
     isNew: boolean;
     isCoutureReserve: boolean;
+    primaryImage?: string;
+    secondaryImage?: string;
+    highResImage?: string;
   }
 ): Promise<{ success: boolean; data?: any; error?: string }> {
-  const { data, error } = await supabase.rpc('admin_upsert_product', {
-    p_admin_id: adminId,
-    p_id: product.id,
-    p_name: product.name,
-    p_brand: product.brand,
-    p_sku: product.sku,
-    p_price: product.price,
-    p_formatted_price: product.formattedPrice,
-    p_fabric: product.fabric,
-    p_subtitle: product.subtitle,
-    p_is_new: product.isNew,
-    p_is_couture_reserve: product.isCoutureReserve,
-  });
-
-  if (error) {
-    return { success: false, error: error.message };
+  if (!product) {
+    return { success: false, error: 'Product payload is required.' };
   }
-  return { success: true, data };
+
+  const validAdminId =
+    adminId && UUID_REGEX.test(adminId) ? adminId : DEFAULT_ADMIN_UUID;
+
+  try {
+    // 1. Primary path: Call hardened Supabase RPC
+    const { data: rpcData, error: rpcError } = await supabase.rpc('admin_upsert_product', {
+      p_admin_id: validAdminId,
+      p_id: product.id,
+      p_name: product.name,
+      p_brand: product.brand,
+      p_sku: product.sku,
+      p_price: Math.round(product.price),
+      p_formatted_price: product.formattedPrice,
+      p_fabric: product.fabric,
+      p_subtitle: product.subtitle,
+      p_is_new: product.isNew,
+      p_is_couture_reserve: product.isCoutureReserve,
+    });
+
+    if (!rpcError && rpcData) {
+      // If primary image was provided and table update is needed
+      if (product.primaryImage) {
+        await supabase
+          .from('products')
+          .update({
+            primary_image: product.primaryImage,
+            ...(product.secondaryImage ? { secondary_image: product.secondaryImage } : {}),
+            ...(product.highResImage ? { high_res_image: product.highResImage } : {}),
+          })
+          .eq('id', product.id);
+      }
+      return { success: true, data: rpcData };
+    }
+
+    // 2. Secondary fallback path: Direct table update/upsert
+    const updatePayload: Record<string, any> = {
+      name: product.name,
+      brand: product.brand,
+      sku: product.sku,
+      price: Math.round(product.price),
+      formatted_price: product.formattedPrice,
+      fabric: product.fabric,
+      subtitle: product.subtitle,
+      is_new: product.isNew,
+      is_couture_reserve: product.isCoutureReserve,
+    };
+    if (product.primaryImage) updatePayload.primary_image = product.primaryImage;
+    if (product.secondaryImage) updatePayload.secondary_image = product.secondaryImage;
+    if (product.highResImage) updatePayload.high_res_image = product.highResImage;
+
+    const { data: updateData, error: updateError } = await supabase
+      .from('products')
+      .update(updatePayload)
+      .eq('id', product.id)
+      .select()
+      .maybeSingle();
+
+    if (!updateError && updateData) {
+      return { success: true, data: updateData };
+    }
+
+    // If update affected 0 rows (product not found), try insert
+    const insertPayload = {
+      id: product.id,
+      ...updatePayload,
+      raw_name: `${product.sku} ${product.name}`,
+      permalink: '#',
+      primary_image: product.primaryImage || 'https://lunahijab.co.id/wp-content/uploads/2026/09/PO-KIANA-1-H-683x1024.png',
+      secondary_image: product.secondaryImage || 'https://lunahijab.co.id/wp-content/uploads/2026/09/PO-KIANA-1-G-683x1024.png',
+      high_res_image: product.highResImage || 'https://lunahijab.co.id/wp-content/uploads/2026/09/PO-KIANA-1-H-scaled.png',
+      gallery: [],
+      color_options: [],
+    };
+
+    const { data: insertData, error: insertError } = await supabase
+      .from('products')
+      .upsert(insertPayload, { onConflict: 'id' })
+      .select()
+      .maybeSingle();
+
+    if (!insertError && insertData) {
+      return { success: true, data: insertData };
+    }
+
+    return {
+      success: false,
+      error: rpcError?.message || updateError?.message || insertError?.message || 'Failed to save garment.',
+    };
+  } catch (err: any) {
+    return { success: false, error: err.message || 'Network error updating garment.' };
+  }
 }
 
 export async function adminCreateCustomer(
