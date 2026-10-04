@@ -48,11 +48,34 @@ export const AdminBrandQRMaker: React.FC<AdminBrandQRMakerProps> = ({
   // Serial Number
   const [serialNumber, setSerialNumber] = useState('');
   const [qrDataUrl, setQrDataUrl] = useState('');
+  const [logoDataUrl, setLogoDataUrl] = useState<string>('');
   const [copiedUrl, setCopiedUrl] = useState(false);
   const [copiedSerial, setCopiedSerial] = useState(false);
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const hangtagCardRef = useRef<HTMLDivElement | null>(null);
+
+  // Pre-load logo as base64 Data URL to guarantee zero-CORS snapshot exports
+  useEffect(() => {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => {
+      const c = document.createElement('canvas');
+      c.width = img.naturalWidth || img.width;
+      c.height = img.naturalHeight || img.height;
+      const ctx = c.getContext('2d');
+      if (ctx) {
+        ctx.drawImage(img, 0, 0);
+        try {
+          const data = c.toDataURL('image/png');
+          setLogoDataUrl(data);
+        } catch (e) {
+          console.warn('Could not serialize logo to data URL', e);
+        }
+      }
+    };
+    img.src = BRAND_ASSETS.logoCompact;
+  }, []);
 
   // Active product object
   const activeProduct =
@@ -275,7 +298,8 @@ export const AdminBrandQRMaker: React.FC<AdminBrandQRMakerProps> = ({
       if (hangtagCardRef.current) {
         try {
           const dataUrl = await toPng(hangtagCardRef.current, {
-            cacheBust: true,
+            skipFonts: true,
+            cacheBust: false,
             pixelRatio: 3, // Ultra-high 1020px print resolution
             style: {
               margin: '0',
@@ -980,7 +1004,7 @@ export const AdminBrandQRMaker: React.FC<AdminBrandQRMakerProps> = ({
             <div className="text-center space-y-1 mb-4">
               <div className="flex justify-center mb-1">
                 <img
-                  src={BRAND_ASSETS.logoCompact}
+                  src={logoDataUrl || BRAND_ASSETS.logoCompact}
                   alt={selectedBrand}
                   crossOrigin="anonymous"
                   className="h-8 w-auto filter drop-shadow-md brightness-110"
