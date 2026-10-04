@@ -416,54 +416,66 @@ export const AdminBrandQRMaker: React.FC<AdminBrandQRMakerProps> = ({
       const gSku = activeProduct?.sku || customSku;
       ctx.font = 'bold 26px "Playfair Display", Georgia, serif';
       ctx.fillStyle = '#ffffff';
-      let currentY = drawCenteredWrappedText(ctx, gName, width / 2, 332, 540, 34);
+      let currentY = drawCenteredWrappedText(ctx, gName, width / 2, 324, 540, 32);
 
       // SKU Chip (Rounded)
       const skuText = `SKU: ${gSku}`;
-      ctx.font = 'bold 14px monospace';
+      ctx.font = 'bold 13px monospace';
       const skuMetrics = ctx.measureText(skuText);
-      const skuChipW = skuMetrics.width + 36;
-      drawRoundedRect(ctx, width / 2 - skuChipW / 2, currentY + 4, skuChipW, 28, 6);
+      const skuChipW = skuMetrics.width + 32;
+      drawRoundedRect(ctx, width / 2 - skuChipW / 2, currentY + 4, skuChipW, 26, 6);
       ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
       ctx.fill();
       ctx.strokeStyle = 'rgba(255, 255, 255, 0.18)';
       ctx.stroke();
       ctx.fillStyle = '#ffffff';
-      ctx.fillText(skuText, width / 2, currentY + 23);
-      currentY += 40;
+      ctx.fillText(skuText, width / 2, currentY + 22);
+      currentY += 36;
 
       // 13. Fabric Line (Safe Wrapped)
       const gFabric = activeProduct?.fabric || customFabric;
-      ctx.font = 'italic 14px Georgia, serif';
+      ctx.font = 'italic 13px Georgia, serif';
       ctx.fillStyle = 'rgba(255, 255, 255, 0.75)';
-      drawCenteredWrappedText(ctx, gFabric, width / 2, currentY + 12, 540, 20);
+      currentY = drawCenteredWrappedText(ctx, gFabric, width / 2, currentY + 8, 540, 18);
 
-      // 14. White QR Code Box with Rounded Corners
-      const boxSize = 330;
-      const boxX = (width - boxSize) / 2; // 235
-      const boxY = 475;
+      // 14. Security Inscription / Scanner Instruction (MOVED TO TOP OF QR)
+      ctx.font = '12px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.68)';
+      drawCenteredWrappedText(
+        ctx,
+        'Scan QR code with smartphone camera or atelier scanner to verify authentic provenance & register warranty.',
+        width / 2,
+        currentY + 14,
+        500, // Safe width inside 704px inner border
+        19
+      );
+
+      // 15. White QR Code Box with Rounded Corners
+      const boxSize = 320;
+      const boxX = (width - boxSize) / 2; // 240
+      const boxY = 488;
       drawRoundedRect(ctx, boxX, boxY, boxSize, boxSize, 22);
       ctx.fillStyle = '#ffffff';
       ctx.fill();
-      ctx.drawImage(qrImg, boxX + 15, boxY + 15, 300, 300);
+      ctx.drawImage(qrImg, boxX + 15, boxY + 15, 290, 290);
 
-      // 15. Serial Number Chip (Rounded)
+      // 16. Serial Number Chip (Rounded)
       const serialChipW = 460;
-      const serialChipH = 48;
-      const serialChipY = 832;
+      const serialChipH = 46;
+      const serialChipY = 834;
       drawRoundedRect(ctx, width / 2 - serialChipW / 2, serialChipY, serialChipW, serialChipH, 12);
       ctx.fillStyle = 'rgba(0, 0, 0, 0.42)';
       ctx.fill();
       ctx.strokeStyle = 'rgba(255, 255, 255, 0.16)';
       ctx.stroke();
-      ctx.font = 'bold 17px monospace';
+      ctx.font = 'bold 16px monospace';
       ctx.fillStyle = '#ffffff';
-      ctx.fillText(serialNumber, width / 2, serialChipY + 30);
+      ctx.fillText(serialNumber, width / 2, serialChipY + 29);
 
-      // 16. QC Seal Badge & Provenance
+      // 17. QC Seal Badge & Provenance
       const sealW = 320;
       const sealH = 30;
-      const sealY = 902;
+      const sealY = 906;
       drawRoundedRect(ctx, width / 2 - sealW / 2, sealY, sealW, sealH, 15);
       ctx.fillStyle = 'rgba(255, 255, 255, 0.07)';
       ctx.fill();
@@ -475,41 +487,28 @@ export const AdminBrandQRMaker: React.FC<AdminBrandQRMakerProps> = ({
 
       ctx.font = '11px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
       ctx.fillStyle = 'rgba(255, 255, 255, 0.65)';
-      ctx.fillText('KUDUS ATELIER · CENTRAL JAVA · INDONESIA', width / 2, 952);
+      ctx.fillText('KUDUS ATELIER · CENTRAL JAVA · INDONESIA', width / 2, 956);
 
-      // 17. Divider Line 2
+      // 18. Divider Line 2
       ctx.strokeStyle = 'rgba(255, 255, 255, 0.14)';
       ctx.beginPath();
-      ctx.moveTo(160, 978);
-      ctx.lineTo(width - 160, 978);
+      ctx.moveTo(160, 984);
+      ctx.lineTo(width - 160, 984);
       ctx.stroke();
 
-      // 18. Security Inscription / Scanner Instruction
-      // FIXED: Restricted to maxWidth 500px so it NEVER touches or crosses the border lines!
-      ctx.font = '13px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.65)';
-      drawCenteredWrappedText(
-        ctx,
-        'Scan QR code with smartphone camera or atelier scanner to verify authentic provenance & register warranty.',
-        width / 2,
-        1014,
-        500, // 500px width inside 696px inner border guarantees over 98px padding on both sides
-        22
-      );
-
       // 19. Barcode Simulation Lines (Safe Centered)
-      const barcodeY = 1084;
+      const barcodeY = 1018;
       const barcodeW = 320;
       const startX = width / 2 - barcodeW / 2; // 240
       ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
       for (let i = startX; i < startX + barcodeW; i += 7) {
         const barW = (i * 7) % 5 === 0 ? 3.5 : 1.8;
-        ctx.fillRect(i, barcodeY, barW, 36);
+        ctx.fillRect(i, barcodeY, barW, 38);
       }
 
       ctx.font = '12px monospace';
       ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
-      ctx.fillText(`AUT-ID: ${serialNumber}`, width / 2, 1145);
+      ctx.fillText(`AUT-ID: ${serialNumber}`, width / 2, 1080);
 
       // 20. Trigger Download
       const link = document.createElement('a');
@@ -929,8 +928,15 @@ export const AdminBrandQRMaker: React.FC<AdminBrandQRMakerProps> = ({
               </p>
             </div>
 
+            {/* Security Inscription / Scanner Instruction (Moved to Top of QR) */}
+            <div className="mt-2.5 mb-1 px-3 text-center">
+              <p className="text-[7.5px] leading-tight text-alabaster/60 font-light max-w-[260px] mx-auto">
+                Scan QR code with smartphone camera or atelier scanner to verify authentic provenance & register warranty.
+              </p>
+            </div>
+
             {/* High-Contrast QR Code Display */}
-            <div className="my-5 flex flex-col items-center">
+            <div className="my-4 flex flex-col items-center">
               <div className="p-3 bg-white rounded-2xl shadow-xl border border-white/20">
                 {qrDataUrl ? (
                   <img
@@ -959,13 +965,6 @@ export const AdminBrandQRMaker: React.FC<AdminBrandQRMakerProps> = ({
               </div>
               <p className="text-[8px] uppercase tracking-[0.2em] text-alabaster/60 font-light block">
                 KUDUS ATELIER · CENTRAL JAVA · INDONESIA
-              </p>
-            </div>
-
-            {/* Security Inscription matching printable canvas */}
-            <div className="mt-2.5 px-3 text-center">
-              <p className="text-[7.5px] leading-tight text-alabaster/60 font-light max-w-[260px] mx-auto">
-                Scan QR code with smartphone camera or atelier scanner to verify authentic provenance & register warranty.
               </p>
             </div>
 
