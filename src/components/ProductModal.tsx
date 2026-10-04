@@ -125,10 +125,10 @@ export const ProductModal: React.FC<ProductModalProps> = ({
               <p className="text-[10px] font-medium uppercase tracking-[0.22em] text-champagne">
                 {product.brand.toUpperCase()} ATELIER — {product.sku}
               </p>
-              <h2 className="font-sans font-bold text-2xl sm:text-3xl text-obsidian mt-1 uppercase tracking-wide">
+              <h2 className="font-serif text-3xl sm:text-4xl font-normal text-obsidian mt-1">
                 {product.rawName}
               </h2>
-              <p className="font-sans font-bold text-xl sm:text-2xl text-obsidian mt-2 tracking-tight">
+              <p className="font-serif text-xl font-semibold text-obsidian mt-2">
                 {product.formattedPrice}
               </p>
             </div>

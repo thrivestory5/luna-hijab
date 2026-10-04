@@ -281,8 +281,8 @@ export const CollectionArchive: React.FC<CollectionArchiveProps> = ({
                         {getCategoryTag(product)}
                       </p>
 
-                      {/* Bold Sans Product Title (matching AUTUMN/WINTER font) */}
-                      <h3 className="font-sans font-bold text-base sm:text-lg leading-snug text-obsidian mt-1 uppercase tracking-wide group-hover:text-brass transition-colors">
+                      {/* Serif Product Title (e.g. G.520 LYORNA 1) */}
+                      <h3 className="font-serif text-[1.35rem] leading-snug font-normal text-obsidian mt-1 group-hover:text-brass transition-colors">
                         {product.rawName}
                       </h3>
 
@@ -346,7 +346,7 @@ export const CollectionArchive: React.FC<CollectionArchiveProps> = ({
 
                     {/* Hairline Divider + Bottom Price & Detail Row */}
                     <div className="mt-4 pt-3.5 border-t border-obsidian/10 flex items-center justify-between">
-                      <span className="font-sans font-bold text-[1.05rem] tracking-tight text-obsidian">
+                      <span className="font-serif text-[1.05rem] font-semibold tracking-tight text-obsidian">
                         {product.formattedPrice}
                       </span>
 

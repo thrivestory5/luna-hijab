@@ -136,7 +136,7 @@ export const PinnedLookbook: React.FC<PinnedLookbookProps> = ({
                     <p className="text-[9.5px] font-sans font-medium uppercase tracking-[0.18em] text-champagne">
                       {look.subtitle}
                     </p>
-                    <h3 className="font-sans font-bold text-base sm:text-lg leading-snug text-obsidian mt-1 uppercase tracking-wide group-hover:text-brass transition-colors">
+                    <h3 className="font-serif text-[1.35rem] leading-snug font-normal text-obsidian mt-1 group-hover:text-brass transition-colors">
                       {look.featuredSku} {look.featuredName.toUpperCase()}
                     </h3>
                     <p className="text-[11.5px] text-taupe font-light mt-1 line-clamp-1">
@@ -189,7 +189,7 @@ export const PinnedLookbook: React.FC<PinnedLookbookProps> = ({
                   </div>
 
                   <div className="mt-4 pt-3.5 border-t border-obsidian/10 flex items-center justify-between">
-                    <span className="font-sans font-bold text-[1.05rem] tracking-tight text-obsidian">
+                    <span className="font-serif text-[1.05rem] font-semibold tracking-tight text-obsidian">
                       {look.featuredPrice}
                     </span>
                     <span className="text-[11px] font-light text-taupe group-hover:text-obsidian transition-colors inline-flex items-center gap-1">
