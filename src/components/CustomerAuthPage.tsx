@@ -349,6 +349,10 @@ export const CustomerAuthPage: React.FC<CustomerAuthPageProps> = ({
       setErrorMsg('Silakan masukkan password Anda.');
       return;
     }
+    if (loginPassword.length < 8) {
+      setErrorMsg('Password minimal 8 karakter.');
+      return;
+    }
 
     setLoading(true);
     try {
@@ -378,8 +382,8 @@ export const CustomerAuthPage: React.FC<CustomerAuthPageProps> = ({
       setErrorMsg('Format email tidak valid (contoh: nama@email.com).');
       return;
     }
-    if (password.length < 6) {
-      setErrorMsg('Password minimal 6 karakter.');
+    if (password.length < 8) {
+      setErrorMsg('Password minimal 8 karakter.');
       return;
     }
     if (
@@ -639,7 +643,8 @@ export const CustomerAuthPage: React.FC<CustomerAuthPageProps> = ({
                     <input
                       type="password"
                       required
-                      placeholder="Masukkan password"
+                      minLength={8}
+                      placeholder="Minimal 8 karakter"
                       value={loginPassword}
                       onChange={(e) => setLoginPassword(e.target.value)}
                       className="w-full pl-10 pr-4 py-3 rounded-xl bg-alabaster border border-obsidian/15 text-xs focus:outline-none focus:border-obsidian"
@@ -761,8 +766,8 @@ export const CustomerAuthPage: React.FC<CustomerAuthPageProps> = ({
                       <input
                         type="password"
                         required
-                        minLength={6}
-                        placeholder="Minimal 6 karakter"
+                        minLength={8}
+                        placeholder="Minimal 8 karakter"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         className="w-full pl-9 pr-3.5 py-2.5 rounded-xl bg-alabaster border border-obsidian/15 text-xs focus:outline-none focus:border-obsidian"

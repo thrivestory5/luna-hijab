@@ -143,6 +143,10 @@ export const AdminCustomerManager: React.FC<AdminCustomerManagerProps> = ({
       setActionError('Please fill in Name, Email, and WhatsApp number.');
       return;
     }
+    if (newClient.password && newClient.password.length < 8) {
+      setActionError('Password must be at least 8 characters.');
+      return;
+    }
 
     setActionLoading(true);
     setActionError(null);
@@ -871,11 +875,12 @@ export const AdminCustomerManager: React.FC<AdminCustomerManagerProps> = ({
                 </div>
                 <div>
                   <label className="block text-[10px] uppercase tracking-[0.18em] text-taupe mb-1">
-                    Initial Password
+                    Initial Password (Min. 8 characters)
                   </label>
                   <input
                     type="password"
-                    placeholder="Default: member123"
+                    minLength={8}
+                    placeholder="Default: member123 (Min. 8 chars)"
                     value={newClient.password}
                     onChange={(e) => setNewClient({ ...newClient, password: e.target.value })}
                     className="w-full px-3.5 py-2.5 rounded-xl bg-alabaster border border-obsidian/15 focus:outline-none focus:border-obsidian"

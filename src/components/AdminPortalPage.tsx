@@ -136,6 +136,10 @@ export const AdminPortalPage: React.FC<AdminPortalPageProps> = ({
       setLoginError('Please enter your admin email and password.');
       return;
     }
+    if (password.length < 8) {
+      setLoginError('Password must be at least 8 characters.');
+      return;
+    }
 
     setLoginLoading(true);
     try {
@@ -285,9 +289,10 @@ export const AdminPortalPage: React.FC<AdminPortalPageProps> = ({
                   <input
                     type="password"
                     required
+                    minLength={8}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    placeholder="Enter password (default: admin123)"
+                    placeholder="Enter password (min. 8 characters)"
                     className="w-full pl-10 pr-4 py-3 rounded-xl bg-alabaster border border-obsidian/15 text-xs text-obsidian focus:outline-none focus:border-obsidian"
                   />
                 </div>

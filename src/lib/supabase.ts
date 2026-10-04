@@ -245,6 +245,9 @@ export async function registerCustomerAccount(input: {
     if (error.message.includes('INVALID_EMAIL_FORMAT')) {
       return { error: 'Format email tidak valid.' };
     }
+    if (error.message.includes('PASSWORD_TOO_SHORT')) {
+      return { error: 'Password harus memiliki minimal 8 karakter.' };
+    }
     return { error: 'Gagal mendaftarkan akun. Silakan periksa kembali data Anda.' };
   }
 
