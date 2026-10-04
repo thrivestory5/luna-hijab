@@ -436,24 +436,26 @@ export const AdminBrandQRMaker: React.FC<AdminBrandQRMakerProps> = ({
       const gFabric = activeProduct?.fabric || customFabric;
       ctx.font = 'italic 13px Georgia, serif';
       ctx.fillStyle = 'rgba(255, 255, 255, 0.75)';
-      currentY = drawCenteredWrappedText(ctx, gFabric, width / 2, currentY + 8, 540, 18);
+      drawCenteredWrappedText(ctx, gFabric, width / 2, currentY + 8, 540, 18);
 
-      // 14. Security Inscription / Scanner Instruction (MOVED TO TOP OF QR)
+      // 14. White QR Code Box with Rounded Corners
+      const boxSize = 320;
+      const boxX = (width - boxSize) / 2; // 240
+      const boxY = 506;
+
+      // 15. Security Inscription / Scanner Instruction (Anchored directly at the top of the square QR)
       ctx.font = '12px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.68)';
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.75)';
       drawCenteredWrappedText(
         ctx,
         'Scan QR code with smartphone camera or atelier scanner to verify authentic provenance & register warranty.',
         width / 2,
-        currentY + 14,
-        500, // Safe width inside 704px inner border
-        19
+        boxY - 32, // Positioned directly at the top of the square QR
+        480, // Safe width inside 704px inner border
+        18
       );
 
-      // 15. White QR Code Box with Rounded Corners
-      const boxSize = 320;
-      const boxX = (width - boxSize) / 2; // 240
-      const boxY = 488;
+      // Draw the White Square QR Box
       drawRoundedRect(ctx, boxX, boxY, boxSize, boxSize, 22);
       ctx.fillStyle = '#ffffff';
       ctx.fill();
@@ -462,7 +464,7 @@ export const AdminBrandQRMaker: React.FC<AdminBrandQRMakerProps> = ({
       // 16. Serial Number Chip (Rounded)
       const serialChipW = 460;
       const serialChipH = 46;
-      const serialChipY = 834;
+      const serialChipY = boxY + boxSize + 16;
       drawRoundedRect(ctx, width / 2 - serialChipW / 2, serialChipY, serialChipW, serialChipH, 12);
       ctx.fillStyle = 'rgba(0, 0, 0, 0.42)';
       ctx.fill();
@@ -928,15 +930,16 @@ export const AdminBrandQRMaker: React.FC<AdminBrandQRMakerProps> = ({
               </p>
             </div>
 
-            {/* Security Inscription / Scanner Instruction (Moved to Top of QR) */}
-            <div className="mt-2.5 mb-1 px-3 text-center">
-              <p className="text-[7.5px] leading-tight text-alabaster/60 font-light max-w-[260px] mx-auto">
-                Scan QR code with smartphone camera or atelier scanner to verify authentic provenance & register warranty.
-              </p>
-            </div>
-
             {/* High-Contrast QR Code Display */}
             <div className="my-4 flex flex-col items-center">
+              {/* Security Inscription / Scanner Instruction directly at the TOP of the square QR */}
+              <div className="mb-2 px-2 text-center">
+                <p className="text-[7.5px] leading-tight text-alabaster/75 font-light max-w-[250px] mx-auto">
+                  Scan QR code with smartphone camera or atelier scanner to verify authentic provenance & register warranty.
+                </p>
+              </div>
+
+              {/* Square QR Box */}
               <div className="p-3 bg-white rounded-2xl shadow-xl border border-white/20">
                 {qrDataUrl ? (
                   <img
