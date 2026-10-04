@@ -146,6 +146,20 @@ export const CraftsmanshipSection: React.FC<CraftsmanshipSectionProps> = ({
     }, 450);
   }, [stopCamera]);
 
+  // Auto-verify if URL contains ?verify= or ?code= parameter from scanned QR code
+  useEffect(() => {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const queryCode = params.get('verify') || params.get('code');
+      if (queryCode) {
+        setManualCode(queryCode);
+        verifyCode(queryCode);
+      }
+    } catch {
+      // Ignore URL parsing errors
+    }
+  }, [verifyCode]);
+
   // Start video stream & QR scanner loop
   const startCamera = async () => {
     setCameraError(null);

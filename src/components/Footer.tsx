@@ -177,30 +177,45 @@ export const Footer: React.FC<FooterProps> = ({ onSelectBrand, onOpenConcierge, 
 
           <div className="pt-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-[10.5px] uppercase tracking-[0.22em] text-taupe">
             <span>© 2026 Luna Indonesia</span>
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={() => handleBrandJump('Luna')}
-                className="hover:text-obsidian transition-colors cursor-pointer"
-              >
-                Luna
-              </button>
-              <span>•</span>
-              <button
-                type="button"
-                onClick={() => handleBrandJump('Kemayu')}
-                className="hover:text-obsidian transition-colors cursor-pointer"
-              >
-                Kemayu
-              </button>
-              <span>•</span>
-              <button
-                type="button"
-                onClick={() => handleBrandJump('GZ')}
-                className="hover:text-obsidian transition-colors cursor-pointer"
-              >
-                GZ
-              </button>
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => handleBrandJump('Luna')}
+                  className="hover:text-obsidian transition-colors cursor-pointer"
+                >
+                  Luna
+                </button>
+                <span>•</span>
+                <button
+                  type="button"
+                  onClick={() => handleBrandJump('Kemayu')}
+                  className="hover:text-obsidian transition-colors cursor-pointer"
+                >
+                  Kemayu
+                </button>
+                <span>•</span>
+                <button
+                  type="button"
+                  onClick={() => handleBrandJump('GZ')}
+                  className="hover:text-obsidian transition-colors cursor-pointer"
+                >
+                  GZ
+                </button>
+              </div>
+              {onNavigate && (
+                <>
+                  <span className="text-obsidian/30">•</span>
+                  <button
+                    type="button"
+                    onClick={() => onNavigate('/admin')}
+                    className="hover:text-obsidian transition-colors cursor-pointer text-taupe/60"
+                    title="Maison Atelier Admin Panel"
+                  >
+                    Atelier Admin
+                  </button>
+                </>
+              )}
             </div>
           </div>
         </div>

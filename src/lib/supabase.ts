@@ -23,6 +23,7 @@ export interface CustomerProfile {
   nomer_whatsapp: string;
   foto_url: string | null;
   created_at: string;
+  is_archived?: boolean;
 }
 
 export interface AdminProfile {
@@ -325,3 +326,130 @@ export async function fetchAdminDashboardData(adminId: string): Promise<{
     inquiries: Array.isArray(parsed.inquiries) ? parsed.inquiries : [],
   };
 }
+
+export async function adminUpsertProduct(
+  adminId: string,
+  product: {
+    id: number;
+    name: string;
+    brand: string;
+    sku: string;
+    price: number;
+    formattedPrice: string;
+    fabric: string;
+    subtitle: string;
+    isNew: boolean;
+    isCoutureReserve: boolean;
+  }
+): Promise<{ success: boolean; data?: any; error?: string }> {
+  const { data, error } = await supabase.rpc('admin_upsert_product', {
+    p_admin_id: adminId,
+    p_id: product.id,
+    p_name: product.name,
+    p_brand: product.brand,
+    p_sku: product.sku,
+    p_price: product.price,
+    p_formatted_price: product.formattedPrice,
+    p_fabric: product.fabric,
+    p_subtitle: product.subtitle,
+    p_is_new: product.isNew,
+    p_is_couture_reserve: product.isCoutureReserve,
+  });
+
+  if (error) {
+    return { success: false, error: error.message };
+  }
+  return { success: true, data };
+}
+
+export async function adminCreateCustomer(
+  adminId: string,
+  customer: {
+    nama: string;
+    email: string;
+    password?: string;
+    alamat: string;
+    provinsi: string;
+    kota_kabupaten: string;
+    kecamatan: string;
+    kelurahan_desa: string;
+    kode_pos: string;
+    nomer_whatsapp: string;
+    foto_url?: string | null;
+  }
+): Promise<{ success: boolean; data?: CustomerProfile; error?: string }> {
+  const { data, error } = await supabase.rpc('admin_create_customer', {
+    p_admin_id: adminId,
+    p_nama: customer.nama,
+    p_email: customer.email,
+    p_password: customer.password || 'member123',
+    p_alamat: customer.alamat,
+    p_provinsi: customer.provinsi,
+    p_kota_kabupaten: customer.kota_kabupaten,
+    p_kecamatan: customer.kecamatan,
+    p_kelurahan_desa: customer.kelurahan_desa,
+    p_kode_pos: customer.kode_pos,
+    p_nomer_whatsapp: customer.nomer_whatsapp,
+    p_foto_url: customer.foto_url || null,
+  });
+
+  if (error) {
+    return { success: false, error: error.message };
+  }
+  return { success: true, data: data as CustomerProfile };
+}
+
+export async function adminUpdateCustomer(
+  adminId: string,
+  customerId: string,
+  customer: {
+    nama: string;
+    email: string;
+    alamat: string;
+    provinsi: string;
+    kota_kabupaten: string;
+    kecamatan: string;
+    kelurahan_desa: string;
+    kode_pos: string;
+    nomer_whatsapp: string;
+    is_archived?: boolean;
+  }
+): Promise<{ success: boolean; data?: CustomerProfile; error?: string }> {
+  const { data, error } = await supabase.rpc('admin_update_customer', {
+    p_admin_id: adminId,
+    p_customer_id: customerId,
+    p_nama: customer.nama,
+    p_email: customer.email,
+    p_alamat: customer.alamat,
+    p_provinsi: customer.provinsi,
+    p_kota_kabupaten: customer.kota_kabupaten,
+    p_kecamatan: customer.kecamatan,
+    p_kelurahan_desa: customer.kelurahan_desa,
+    p_kode_pos: customer.kode_pos,
+    p_nomer_whatsapp: customer.nomer_whatsapp,
+    p_is_archived: customer.is_archived ?? false,
+  });
+
+  if (error) {
+    return { success: false, error: error.message };
+  }
+  return { success: true, data: data as CustomerProfile };
+}
+
+export async function adminUpdateInquiryStatus(
+  adminId: string,
+  inquiryId: string,
+  status: string
+): Promise<{ success: boolean; error?: string }> {
+  const { error } = await supabase.rpc('admin_update_inquiry_status', {
+    p_admin_id: adminId,
+    p_inquiry_id: inquiryId,
+    p_status: status,
+  });
+
+  if (error) {
+    return { success: false, error: error.message };
+  }
+  return { success: true };
+}
+

@@ -16,17 +16,16 @@ import { Footer } from './components/Footer';
 import { CustomerAuthPage } from './components/CustomerAuthPage';
 import { AdminPortalPage } from './components/AdminPortalPage';
 
-const normalizeRoute = (pathname: string): '/' | '/katalog' | '/login' | '/admlog' | '/admin' => {
+const normalizeRoute = (pathname: string): '/' | '/katalog' | '/login' | '/admin' => {
   const clean = pathname.replace(/\/+$/, '').toLowerCase() || '/';
   if (clean === '/katalog') return '/katalog';
   if (clean === '/login') return '/login';
-  if (clean === '/admlog') return '/admlog';
-  if (clean === '/admin') return '/admin';
+  if (clean === '/admin' || clean.startsWith('/admin/') || clean === '/admlog') return '/admin';
   return '/';
 };
 
 export function App() {
-  const [currentRoute, setCurrentRoute] = useState<'/' | '/katalog' | '/login' | '/admlog' | '/admin'>('/');
+  const [currentRoute, setCurrentRoute] = useState<'/' | '/katalog' | '/login' | '/admin'>('/');
   const [catalogProducts, setCatalogProducts] = useState<Product[]>(PRODUCTS);
   const [currentUser, setCurrentUser] = useState<CustomerProfile | null>(null);
   const [adminUser, setAdminUser] = useState<AdminProfile | null>(null);
@@ -63,8 +62,9 @@ export function App() {
       setAuthModalOpen(true);
       return;
     }
-    if (window.location.pathname !== target) {
-      window.history.pushState({}, '', target);
+    const cleanPath = path.replace(/\/+$/, '') || '/';
+    if (window.location.pathname !== cleanPath) {
+      window.history.pushState({}, '', cleanPath);
     }
     setCurrentRoute(target);
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -267,16 +267,21 @@ export function App() {
 
   const totalCartCount = cartItems.reduce((sum, i) => sum + i.quantity, 0);
 
-  // Route: /admlog or /admin
-  if (currentRoute === '/admlog' || currentRoute === '/admin') {
+  // Route: /admin (all pages for panel under /admin)
+  if (currentRoute === '/admin') {
     return (
       <AdminPortalPage
-        route={currentRoute}
+        currentPath={window.location.pathname}
         adminUser={adminUser}
         products={catalogProducts}
         onAdminLoginSuccess={handleAdminLoginSuccess}
         onAdminLogout={handleAdminLogout}
         onNavigate={handleNavigate}
+        onProductUpdated={(updatedProduct) => {
+          setCatalogProducts((prev) =>
+            prev.map((p) => (p.id === updatedProduct.id ? { ...p, ...updatedProduct } : p))
+          );
+        }}
       />
     );
   }
