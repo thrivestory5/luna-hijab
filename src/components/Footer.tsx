@@ -177,7 +177,31 @@ export const Footer: React.FC<FooterProps> = ({ onSelectBrand, onOpenConcierge, 
 
           <div className="pt-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-[10.5px] uppercase tracking-[0.22em] text-taupe">
             <span>© 2026 Luna Indonesia</span>
-            <span>Luna • Kemayu • GZ</span>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => handleBrandJump('Luna')}
+                className="hover:text-obsidian transition-colors cursor-pointer"
+              >
+                Luna
+              </button>
+              <span>•</span>
+              <button
+                type="button"
+                onClick={() => handleBrandJump('Kemayu')}
+                className="hover:text-obsidian transition-colors cursor-pointer"
+              >
+                Kemayu
+              </button>
+              <span>•</span>
+              <button
+                type="button"
+                onClick={() => handleBrandJump('GZ')}
+                className="hover:text-obsidian transition-colors cursor-pointer"
+              >
+                GZ
+              </button>
+            </div>
           </div>
         </div>
       </div>
