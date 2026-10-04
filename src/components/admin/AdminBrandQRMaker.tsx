@@ -198,163 +198,331 @@ export const AdminBrandQRMaker: React.FC<AdminBrandQRMakerProps> = ({
     document.body.removeChild(link);
   };
 
-  // Download Luxury Hangtag Card as printable PNG
-  const handleDownloadHangtagCard = () => {
-    const element = hangtagCardRef.current;
-    if (!element) return;
-
-    // Render hangtag using HTML5 Canvas
-    const canvas = document.createElement('canvas');
-    const width = 800;
-    const height = 1400;
-    canvas.width = width;
-    canvas.height = height;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    // Background gradient
-    const grad = ctx.createLinearGradient(0, 0, 0, height);
-    if (selectedBrand === 'Luna') {
-      grad.addColorStop(0, '#141312');
-      grad.addColorStop(0.5, '#1a1816');
-      grad.addColorStop(1, '#0d0c0b');
-    } else if (selectedBrand === 'Kemayu') {
-      grad.addColorStop(0, '#0b1712');
-      grad.addColorStop(0.5, '#11241c');
-      grad.addColorStop(1, '#08120e');
+  // Helper to draw rounded rectangles on canvas with broad compatibility
+  const drawRoundedRect = (
+    ctx: CanvasRenderingContext2D,
+    x: number,
+    y: number,
+    w: number,
+    h: number,
+    r: number
+  ) => {
+    ctx.beginPath();
+    if (typeof (ctx as any).roundRect === 'function') {
+      (ctx as any).roundRect(x, y, w, h, r);
     } else {
-      grad.addColorStop(0, '#12161f');
-      grad.addColorStop(0.5, '#181d29');
-      grad.addColorStop(1, '#0d1017');
+      ctx.moveTo(x + r, y);
+      ctx.arcTo(x + w, y, x + w, y + h, r);
+      ctx.arcTo(x + w, y + h, x, y + h, r);
+      ctx.arcTo(x, y + h, x, y, r);
+      ctx.arcTo(x, y, x + w, y, r);
+      ctx.closePath();
     }
-    ctx.fillStyle = grad;
-    ctx.fillRect(0, 0, width, height);
+  };
 
-    // Gold / accent border
-    ctx.strokeStyle =
-      selectedBrand === 'Luna' ? '#d4af37' : selectedBrand === 'Kemayu' ? '#34d399' : '#93c5fd';
-    ctx.lineWidth = 6;
-    ctx.strokeRect(30, 30, width - 60, height - 60);
+  // Helper to draw centered wrapped text strictly within a maximum width
+  const drawCenteredWrappedText = (
+    ctx: CanvasRenderingContext2D,
+    text: string,
+    centerX: number,
+    startY: number,
+    maxWidth: number,
+    lineHeight: number
+  ): number => {
+    const words = text.split(' ');
+    let line = '';
+    let y = startY;
 
-    // Inner subtle border
-    ctx.lineWidth = 1.5;
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
-    ctx.strokeRect(42, 42, width - 84, height - 84);
+    for (let n = 0; n < words.length; n++) {
+      const testLine = line + (line ? ' ' : '') + words[n];
+      const metrics = ctx.measureText(testLine);
+      if (metrics.width > maxWidth && line !== '') {
+        ctx.fillText(line, centerX, y);
+        line = words[n];
+        y += lineHeight;
+      } else {
+        line = testLine;
+      }
+    }
+    if (line) {
+      ctx.fillText(line, centerX, y);
+      y += lineHeight;
+    }
+    return y;
+  };
 
-    // Lanyard hole
-    ctx.beginPath();
-    ctx.arc(width / 2, 90, 22, 0, 2 * Math.PI);
-    ctx.fillStyle = '#000000';
-    ctx.fill();
-    ctx.lineWidth = 4;
-    ctx.strokeStyle = '#d4af37';
-    ctx.stroke();
+  // Download Luxury Hangtag Card as printable PNG with rounded corners and safe margins
+  const [downloadingCard, setDownloadingCard] = useState(false);
 
-    // Brand Name
-    ctx.textAlign = 'center';
-    ctx.fillStyle = '#ffffff';
-    ctx.font = 'bold 36px serif';
-    ctx.fillText(`MAISON ${selectedBrand.toUpperCase()}`, width / 2, 190);
-
-    ctx.font = '16px sans-serif';
-    ctx.fillStyle = '#d4af37';
-    ctx.letterSpacing = '6px';
-    ctx.fillText(theme.subline.toUpperCase(), width / 2, 225);
-
-    // Divider line
-    ctx.strokeStyle = 'rgba(212, 175, 55, 0.4)';
-    ctx.beginPath();
-    ctx.moveTo(120, 260);
-    ctx.lineTo(width - 120, 260);
-    ctx.stroke();
-
-    // Certificate banner
-    ctx.font = '14px sans-serif';
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
-    ctx.fillText('OFFICIAL CERTIFICATE OF AUTHENTICITY', width / 2, 300);
-
-    // Garment Title & SKU
-    const gName = activeProduct?.name || customName;
-    const gSku = activeProduct?.sku || customSku;
-    ctx.font = 'bold 32px serif';
-    ctx.fillStyle = '#ffffff';
-    ctx.fillText(gName, width / 2, 360);
-
-    ctx.font = 'bold 20px monospace';
-    ctx.fillStyle = '#d4af37';
-    ctx.fillText(`ARTICLE SKU: ${gSku}`, width / 2, 400);
-
-    // Fabric
-    const gFabric = activeProduct?.fabric || customFabric;
-    ctx.font = 'italic 16px serif';
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.75)';
-    ctx.fillText(gFabric.slice(0, 50), width / 2, 435);
-
-    // Draw QR code image in the center
-    const qrImg = new Image();
-    qrImg.onload = () => {
-      // White container box for maximum scanner contrast
-      const boxSize = 340;
-      const boxX = (width - boxSize) / 2;
-      const boxY = 480;
-      ctx.fillStyle = '#ffffff';
-      ctx.roundRect(boxX, boxY, boxSize, boxSize, 20);
-      ctx.fill();
-
-      // Draw QR Image
-      ctx.drawImage(qrImg, boxX + 20, boxY + 20, 300, 300);
-
-      // Serial Number Box below QR
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.08)';
-      ctx.roundRect(100, 860, width - 200, 70, 14);
-      ctx.fill();
-      ctx.strokeStyle = 'rgba(212, 175, 55, 0.4)';
-      ctx.stroke();
-
-      ctx.font = 'bold 20px monospace';
-      ctx.fillStyle = '#ffffff';
-      ctx.fillText(serialNumber, width / 2, 903);
-
-      // Seal & QC Stamp
-      ctx.font = 'bold 15px sans-serif';
-      ctx.fillStyle = '#d4af37';
-      ctx.fillText('PASSED 12-POINT QC INSPECTION', width / 2, 970);
-
-      ctx.font = '13px sans-serif';
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
-      ctx.fillText('GRADE A+ COUTURE RESERVE · KUDUS ATELIER', width / 2, 1000);
-
-      // Security Inscription
-      ctx.font = '12px sans-serif';
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
-      ctx.fillText(
-        'Scan QR code using smartphone camera or front-page atelier camera scanner',
-        width / 2,
-        1050
-      );
-      ctx.fillText('to verify provenance and register warranty.', width / 2, 1070);
-
-      // Barcode simulation lines
-      const barcodeY = 1140;
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
-      for (let i = 120; i < width - 120; i += 8) {
-        const barW = (i * 7) % 5 === 0 ? 4 : 2;
-        ctx.fillRect(i, barcodeY, barW, 40);
+  const handleDownloadHangtagCard = async () => {
+    setDownloadingCard(true);
+    try {
+      // 1. Prepare QR code image
+      let targetQr = qrDataUrl;
+      if (!targetQr) {
+        targetQr = await QRCode.toDataURL(verificationUrl, {
+          width: 600,
+          margin: 2,
+          errorCorrectionLevel: 'H',
+        });
       }
 
-      ctx.font = '11px monospace';
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
-      ctx.fillText(`AUT-ID: ${serialNumber}`, width / 2, 1205);
+      // Load QR Image
+      const qrImg = await new Promise<HTMLImageElement>((resolve, reject) => {
+        const img = new Image();
+        img.onload = () => resolve(img);
+        img.onerror = () => reject(new Error('Failed to load QR code image'));
+        img.src = targetQr;
+      });
 
-      // Export
+      // Load Brand Logo if available
+      const logoImg = await new Promise<HTMLImageElement | null>((resolve) => {
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        img.onload = () => resolve(img);
+        img.onerror = () => resolve(null);
+        img.src = BRAND_ASSETS.logoCompact;
+      });
+
+      // 2. Setup Canvas
+      const canvas = document.createElement('canvas');
+      const width = 800;
+      const height = 1400;
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return;
+
+      // 3. Clear Canvas for transparency outside rounded corners
+      ctx.clearRect(0, 0, width, height);
+
+      // Card geometry
+      const cardX = 20;
+      const cardY = 20;
+      const cardW = width - 40; // 760
+      const cardH = height - 40; // 1360
+      const cardRadius = 56; // Matching preview rounded-3xl
+
+      // 4. Fill card background clipped to rounded rect
+      ctx.save();
+      drawRoundedRect(ctx, cardX, cardY, cardW, cardH, cardRadius);
+      ctx.clip();
+
+      const grad = ctx.createLinearGradient(0, 0, 0, height);
+      if (selectedBrand === 'Luna') {
+        grad.addColorStop(0, '#141312');
+        grad.addColorStop(0.5, '#1a1816');
+        grad.addColorStop(1, '#0d0c0b');
+      } else if (selectedBrand === 'Kemayu') {
+        grad.addColorStop(0, '#0b1712');
+        grad.addColorStop(0.5, '#11241c');
+        grad.addColorStop(1, '#08120e');
+      } else {
+        grad.addColorStop(0, '#12161f');
+        grad.addColorStop(0.5, '#181d29');
+        grad.addColorStop(1, '#0d1017');
+      }
+      ctx.fillStyle = grad;
+      ctx.fillRect(cardX, cardY, cardW, cardH);
+
+      // Subtle atmospheric vignette
+      const vignette = ctx.createRadialGradient(
+        width / 2,
+        height / 2,
+        220,
+        width / 2,
+        height / 2,
+        720
+      );
+      vignette.addColorStop(0, 'rgba(255, 255, 255, 0.025)');
+      vignette.addColorStop(1, 'rgba(0, 0, 0, 0.55)');
+      ctx.fillStyle = vignette;
+      ctx.fillRect(cardX, cardY, cardW, cardH);
+      ctx.restore();
+
+      // 5. Outer Accent Border with rounded corners
+      const borderAccent =
+        selectedBrand === 'Luna' ? '#d4af37' : selectedBrand === 'Kemayu' ? '#34d399' : '#93c5fd';
+      ctx.save();
+      ctx.strokeStyle = borderAccent;
+      ctx.lineWidth = 5;
+      drawRoundedRect(ctx, cardX + 16, cardY + 16, cardW - 32, cardH - 32, 42);
+      ctx.stroke();
+
+      // 6. Inner Subtle Border with rounded corners
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.18)';
+      ctx.lineWidth = 1.5;
+      drawRoundedRect(ctx, cardX + 28, cardY + 28, cardW - 56, cardH - 56, 32);
+      ctx.stroke();
+      ctx.restore();
+
+      // 7. Lanyard Hole Punch at Top
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(width / 2, 88, 22, 0, 2 * Math.PI);
+      ctx.fillStyle =
+        selectedBrand === 'Luna' ? '#0a0a09' : selectedBrand === 'Kemayu' ? '#050e09' : '#080b10';
+      ctx.fill();
+      ctx.lineWidth = 3.5;
+      ctx.strokeStyle = borderAccent;
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.arc(width / 2, 88, 11, 0, 2 * Math.PI);
+      ctx.fillStyle = '#000000';
+      ctx.fill();
+      ctx.lineWidth = 1;
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.25)';
+      ctx.stroke();
+      ctx.restore();
+
+      // 8. Brand Logo / Crest
+      if (logoImg) {
+        const maxLogoH = 46;
+        const logoAspect = logoImg.width / logoImg.height;
+        const logoW = Math.min(maxLogoH * logoAspect, 140);
+        ctx.drawImage(logoImg, width / 2 - logoW / 2, 132, logoW, maxLogoH);
+      } else {
+        ctx.font = '26px sans-serif';
+        ctx.fillStyle = borderAccent;
+        ctx.textAlign = 'center';
+        ctx.fillText('✦', width / 2, 158);
+      }
+
+      // 9. Brand Name & Subline
+      ctx.textAlign = 'center';
+      ctx.font = 'bold 34px "Playfair Display", Georgia, serif';
+      ctx.fillStyle = '#ffffff';
+      ctx.fillText(`MAISON ${selectedBrand.toUpperCase()}`, width / 2, 204);
+
+      ctx.font = '12px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
+      ctx.fillStyle = borderAccent;
+      ctx.fillText(theme.subline.toUpperCase(), width / 2, 232);
+
+      // 10. Divider Line 1 (Inside Safe Bounds)
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.16)';
+      ctx.beginPath();
+      ctx.moveTo(160, 258);
+      ctx.lineTo(width - 160, 258);
+      ctx.stroke();
+
+      // 11. Certificate Banner
+      ctx.font = '11px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.72)';
+      ctx.fillText('OFFICIAL CERTIFICATE OF AUTHENTICITY', width / 2, 288);
+
+      // 12. Garment Title & SKU
+      const gName = activeProduct?.name || customName;
+      const gSku = activeProduct?.sku || customSku;
+      ctx.font = 'bold 26px "Playfair Display", Georgia, serif';
+      ctx.fillStyle = '#ffffff';
+      let currentY = drawCenteredWrappedText(ctx, gName, width / 2, 332, 540, 34);
+
+      // SKU Chip (Rounded)
+      const skuText = `SKU: ${gSku}`;
+      ctx.font = 'bold 14px monospace';
+      const skuMetrics = ctx.measureText(skuText);
+      const skuChipW = skuMetrics.width + 36;
+      drawRoundedRect(ctx, width / 2 - skuChipW / 2, currentY + 4, skuChipW, 28, 6);
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.18)';
+      ctx.stroke();
+      ctx.fillStyle = '#ffffff';
+      ctx.fillText(skuText, width / 2, currentY + 23);
+      currentY += 40;
+
+      // 13. Fabric Line (Safe Wrapped)
+      const gFabric = activeProduct?.fabric || customFabric;
+      ctx.font = 'italic 14px Georgia, serif';
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.75)';
+      drawCenteredWrappedText(ctx, gFabric, width / 2, currentY + 12, 540, 20);
+
+      // 14. White QR Code Box with Rounded Corners
+      const boxSize = 330;
+      const boxX = (width - boxSize) / 2; // 235
+      const boxY = 475;
+      drawRoundedRect(ctx, boxX, boxY, boxSize, boxSize, 22);
+      ctx.fillStyle = '#ffffff';
+      ctx.fill();
+      ctx.drawImage(qrImg, boxX + 15, boxY + 15, 300, 300);
+
+      // 15. Serial Number Chip (Rounded)
+      const serialChipW = 460;
+      const serialChipH = 48;
+      const serialChipY = 832;
+      drawRoundedRect(ctx, width / 2 - serialChipW / 2, serialChipY, serialChipW, serialChipH, 12);
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.42)';
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.16)';
+      ctx.stroke();
+      ctx.font = 'bold 17px monospace';
+      ctx.fillStyle = '#ffffff';
+      ctx.fillText(serialNumber, width / 2, serialChipY + 30);
+
+      // 16. QC Seal Badge & Provenance
+      const sealW = 320;
+      const sealH = 30;
+      const sealY = 902;
+      drawRoundedRect(ctx, width / 2 - sealW / 2, sealY, sealW, sealH, 15);
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.07)';
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.12)';
+      ctx.stroke();
+      ctx.font = 'bold 12px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
+      ctx.fillStyle = borderAccent;
+      ctx.fillText('✓ GRADE A+ COUTURE RESERVE', width / 2, sealY + 20);
+
+      ctx.font = '11px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.65)';
+      ctx.fillText('KUDUS ATELIER · CENTRAL JAVA · INDONESIA', width / 2, 952);
+
+      // 17. Divider Line 2
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.14)';
+      ctx.beginPath();
+      ctx.moveTo(160, 978);
+      ctx.lineTo(width - 160, 978);
+      ctx.stroke();
+
+      // 18. Security Inscription / Scanner Instruction
+      // FIXED: Restricted to maxWidth 500px so it NEVER touches or crosses the border lines!
+      ctx.font = '13px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.65)';
+      drawCenteredWrappedText(
+        ctx,
+        'Scan QR code with smartphone camera or atelier scanner to verify authentic provenance & register warranty.',
+        width / 2,
+        1014,
+        500, // 500px width inside 696px inner border guarantees over 98px padding on both sides
+        22
+      );
+
+      // 19. Barcode Simulation Lines (Safe Centered)
+      const barcodeY = 1084;
+      const barcodeW = 320;
+      const startX = width / 2 - barcodeW / 2; // 240
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+      for (let i = startX; i < startX + barcodeW; i += 7) {
+        const barW = (i * 7) % 5 === 0 ? 3.5 : 1.8;
+        ctx.fillRect(i, barcodeY, barW, 36);
+      }
+
+      ctx.font = '12px monospace';
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+      ctx.fillText(`AUT-ID: ${serialNumber}`, width / 2, 1145);
+
+      // 20. Trigger Download
       const link = document.createElement('a');
       link.href = canvas.toDataURL('image/png');
       link.download = `Hangtag_${selectedBrand}_${gSku}_${serialNumber}.png`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-    };
-    qrImg.src = qrDataUrl;
+    } catch (err) {
+      console.error('Failed to generate printable hangtag card', err);
+    } finally {
+      setDownloadingCard(false);
+    }
   };
 
   // Print Hangtag
@@ -384,8 +552,18 @@ export const AdminBrandQRMaker: React.FC<AdminBrandQRMakerProps> = ({
         <div className="flex flex-wrap items-center gap-3">
           <button
             type="button"
+            onClick={handlePrint}
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-obsidian/15 hover:border-obsidian bg-white text-xs uppercase tracking-[0.18em] transition-colors shadow-xs"
+            title="Print Hangtag via System Dialog"
+          >
+            <Printer className="w-3.5 h-3.5" />
+            <span>Print</span>
+          </button>
+
+          <button
+            type="button"
             onClick={handleDownloadQrPng}
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-obsidian/15 hover:border-obsidian bg-white text-xs uppercase tracking-[0.18em] transition-colors"
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-obsidian/15 hover:border-obsidian bg-white text-xs uppercase tracking-[0.18em] transition-colors shadow-xs"
           >
             <Download className="w-3.5 h-3.5" />
             <span>Download QR PNG</span>
@@ -394,10 +572,11 @@ export const AdminBrandQRMaker: React.FC<AdminBrandQRMakerProps> = ({
           <button
             type="button"
             onClick={handleDownloadHangtagCard}
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-obsidian text-alabaster text-xs uppercase tracking-[0.18em] font-medium hover:bg-brass transition-colors shadow-sm"
+            disabled={downloadingCard}
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-obsidian text-alabaster text-xs uppercase tracking-[0.18em] font-medium hover:bg-brass transition-colors shadow-sm disabled:opacity-75 disabled:cursor-not-allowed"
           >
-            <Sparkles className="w-3.5 h-3.5 text-champagne" />
-            <span>Download Hangtag Card</span>
+            <Sparkles className={`w-3.5 h-3.5 text-champagne ${downloadingCard ? 'animate-spin' : ''}`} />
+            <span>{downloadingCard ? 'Rendering...' : 'Download Hangtag Card'}</span>
           </button>
         </div>
       </div>
@@ -698,6 +877,7 @@ export const AdminBrandQRMaker: React.FC<AdminBrandQRMakerProps> = ({
           {/* Luxury Hangtag Mockup Card */}
           <div
             ref={hangtagCardRef}
+            id="printable-hangtag-card"
             className={`w-full max-w-[340px] rounded-3xl p-6 bg-gradient-to-b ${theme.bgGradient} text-alabaster border-2 ${theme.borderColor} shadow-2xl relative select-none`}
             style={{
               boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.4), inset 0 0 40px rgba(0,0,0,0.5)',
@@ -782,8 +962,15 @@ export const AdminBrandQRMaker: React.FC<AdminBrandQRMakerProps> = ({
               </p>
             </div>
 
+            {/* Security Inscription matching printable canvas */}
+            <div className="mt-2.5 px-3 text-center">
+              <p className="text-[7.5px] leading-tight text-alabaster/60 font-light max-w-[260px] mx-auto">
+                Scan QR code with smartphone camera or atelier scanner to verify authentic provenance & register warranty.
+              </p>
+            </div>
+
             {/* Simulated Barcode */}
-            <div className="mt-4 pt-3 border-t border-white/10 flex flex-col items-center">
+            <div className="mt-3 pt-3 border-t border-white/10 flex flex-col items-center">
               <div className="h-6 w-48 flex justify-between items-end opacity-60">
                 {Array.from({ length: 28 }).map((_, i) => (
                   <div
@@ -814,9 +1001,10 @@ export const AdminBrandQRMaker: React.FC<AdminBrandQRMakerProps> = ({
             <button
               type="button"
               onClick={handleDownloadHangtagCard}
-              className="py-2.5 px-3 rounded-xl bg-obsidian text-alabaster hover:bg-brass text-xs uppercase tracking-[0.16em] font-medium transition-colors text-center shadow-sm"
+              disabled={downloadingCard}
+              className="py-2.5 px-3 rounded-xl bg-obsidian text-alabaster hover:bg-brass text-xs uppercase tracking-[0.16em] font-medium transition-colors text-center shadow-sm disabled:opacity-75 disabled:cursor-not-allowed"
             >
-              Full Hangtag
+              {downloadingCard ? 'Rendering...' : 'Full Hangtag'}
             </button>
           </div>
         </div>

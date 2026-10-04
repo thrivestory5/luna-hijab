@@ -70,3 +70,25 @@
 ::-webkit-scrollbar-thumb:hover {
   background: #96753A;
 }
+
+@media print {
+  body {
+    background-color: transparent !important;
+  }
+  body * {
+    visibility: hidden;
+  }
+  #printable-hangtag-card,
+  #printable-hangtag-card * {
+    visibility: visible;
+  }
+  #printable-hangtag-card {
+    position: fixed;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    box-shadow: none !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
