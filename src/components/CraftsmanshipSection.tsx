@@ -2,7 +2,6 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import {
   Camera,
   QrCode,
-  Keyboard,
   ShieldCheck,
   CheckCircle2,
   AlertCircle,
@@ -40,7 +39,6 @@ export const CraftsmanshipSection: React.FC<CraftsmanshipSectionProps> = ({
   onSelectProduct,
 }) => {
   // Verification states
-  const [activeMode, setActiveMode] = useState<'camera' | 'manual'>('manual');
   const [manualCode, setManualCode] = useState<string>('');
   const [isScanning, setIsScanning] = useState<boolean>(false);
   const [cameraError, setCameraError] = useState<string | null>(null);
@@ -468,53 +466,17 @@ export const CraftsmanshipSection: React.FC<CraftsmanshipSectionProps> = ({
             {/* Integrated Verification & Authenticity Console (Replaces Join Member button) */}
             <div className="pt-2">
               <div className="rounded-3xl bg-white border border-obsidian/[0.08] shadow-[0_8px_32px_rgba(28,24,21,0.04)] p-6 sm:p-8 space-y-6">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                  <div>
-                    <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-champagne/15 border border-champagne/30 text-[9.5px] font-medium uppercase tracking-[0.22em] text-brass mb-2">
-                      <Sparkles className="w-3 h-3 text-champagne" />
-                      <span>ATELIER AUTHENTICITY REGISTRY</span>
-                    </div>
-                    <h3 className="font-serif text-2xl text-obsidian font-normal">
-                      Garment Authenticity &amp; Quality Assurance
-                    </h3>
-                    <p className="text-xs text-taupe font-light mt-1">
-                      Scan the garment hangtag QR code using your camera or enter the serial code manually.
-                    </p>
+                <div>
+                  <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-champagne/15 border border-champagne/30 text-[9.5px] font-medium uppercase tracking-[0.22em] text-brass mb-2">
+                    <Sparkles className="w-3 h-3 text-champagne" />
+                    <span>ATELIER AUTHENTICITY REGISTRY</span>
                   </div>
-
-                  {/* Mode Switcher Tabs */}
-                  <div className="inline-flex rounded-full bg-alabaster p-1 border border-obsidian/10 shrink-0 self-start sm:self-auto">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setActiveMode('manual');
-                        stopCamera();
-                      }}
-                      className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-[10.5px] uppercase tracking-[0.16em] transition-all duration-300 ${
-                        activeMode === 'manual'
-                          ? 'bg-obsidian text-alabaster font-medium shadow-xs'
-                          : 'text-obsidian/65 hover:text-obsidian'
-                      }`}
-                    >
-                      <Keyboard className="w-3.5 h-3.5" />
-                      <span>Manual Entry</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setActiveMode('camera');
-                        startCamera();
-                      }}
-                      className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-[10.5px] uppercase tracking-[0.16em] transition-all duration-300 ${
-                        activeMode === 'camera'
-                          ? 'bg-obsidian text-alabaster font-medium shadow-xs'
-                          : 'text-obsidian/65 hover:text-obsidian'
-                      }`}
-                    >
-                      <Camera className="w-3.5 h-3.5" />
-                      <span>QR Camera</span>
-                    </button>
-                  </div>
+                  <h3 className="font-serif text-2xl sm:text-3xl text-obsidian font-normal">
+                    Garment Authenticity &amp; Quality Assurance
+                  </h3>
+                  <p className="text-xs text-taupe font-light mt-1">
+                    Scan the garment hangtag QR code using your camera or enter the serial code manually.
+                  </p>
                 </div>
 
                 {/* Error Banner */}
@@ -525,8 +487,8 @@ export const CraftsmanshipSection: React.FC<CraftsmanshipSectionProps> = ({
                   </div>
                 )}
 
-                {/* Camera Viewfinder Mode */}
-                {activeMode === 'camera' ? (
+                {/* QR Camera Scanner Viewport */}
+                {isScanning ? (
                   <div className="space-y-4">
                     <div className="relative aspect-[4/3] sm:aspect-[16/9] w-full rounded-2xl overflow-hidden bg-black flex items-center justify-center border border-obsidian/20 shadow-inner">
                       <video
@@ -593,62 +555,113 @@ export const CraftsmanshipSection: React.FC<CraftsmanshipSectionProps> = ({
                     </div>
                   </div>
                 ) : (
-                  /* Manual Code Input Form Mode */
-                  <form onSubmit={handleManualSubmit} className="space-y-4">
-                    <div className="flex flex-col sm:flex-row items-stretch gap-3">
-                      <div className="relative flex-1">
-                        <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-taupe">
-                          <QrCode className="w-4 h-4 text-brass" />
-                        </div>
-                        <input
-                          type="text"
-                          value={manualCode}
-                          onChange={(e) => setManualCode(e.target.value)}
-                          placeholder="Enter SKU or Hangtag Code (e.g. G.569, KIANA, LN-8841)"
-                          className="w-full pl-11 pr-4 py-3.5 rounded-full bg-alabaster border border-obsidian/15 text-obsidian placeholder:text-taupe/70 text-xs focus:outline-none focus:border-obsidian focus:bg-white transition-all font-sans"
-                        />
+                  <div className="rounded-2xl border border-dashed border-obsidian/20 bg-alabaster/60 p-6 sm:p-7 text-center space-y-4 hover:border-champagne/60 transition-colors">
+                    <div className="flex flex-col items-center justify-center gap-2">
+                      <div className="w-12 h-12 rounded-full bg-white border border-champagne/40 shadow-xs flex items-center justify-center text-brass">
+                        <Camera className="w-6 h-6" />
                       </div>
+                      <div>
+                        <h4 className="font-serif text-lg text-obsidian">Scan Hangtag QR Code</h4>
+                        <p className="text-xs text-taupe font-light max-w-md mx-auto mt-0.5">
+                          Hold your garment hangtag QR code to the camera for instant digital authentication.
+                        </p>
+                      </div>
+                    </div>
 
+                    <div className="flex flex-wrap items-center justify-center gap-3 pt-1">
                       <button
-                        type="submit"
-                        disabled={!manualCode.trim() || isVerifying}
-                        className="px-8 py-3.5 rounded-full bg-obsidian text-alabaster text-[11px] uppercase tracking-[0.22em] font-medium hover:bg-brass disabled:opacity-50 transition-all duration-300 shadow-md shrink-0 inline-flex items-center justify-center gap-2"
+                        type="button"
+                        onClick={startCamera}
+                        className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-obsidian text-alabaster text-[11px] uppercase tracking-[0.2em] font-medium hover:bg-brass transition-all duration-300 shadow-sm"
                       >
-                        {isVerifying ? (
-                          <>
-                            <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-                            <span>Verifying...</span>
-                          </>
-                        ) : (
-                          <>
-                            <ShieldCheck className="w-3.5 h-3.5 text-champagne" />
-                            <span>Verify Authenticity</span>
-                          </>
-                        )}
+                        <Camera className="w-3.5 h-3.5 text-champagne" />
+                        <span>Open Camera Scanner</span>
                       </button>
+
+                      <div>
+                        <input
+                          ref={fileInputRef}
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={handleImageUpload}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => fileInputRef.current?.click()}
+                          className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-full bg-white border border-obsidian/15 text-obsidian text-[11px] uppercase tracking-[0.18em] font-medium hover:border-obsidian transition-colors"
+                        >
+                          <Upload className="w-3.5 h-3.5 text-taupe" />
+                          <span>Upload QR Image</span>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Elegant Divider */}
+                <div className="relative flex items-center justify-center my-2">
+                  <div className="border-t border-obsidian/10 w-full" />
+                  <span className="bg-white px-4 text-[10px] uppercase tracking-[0.22em] text-taupe font-medium absolute">
+                    Or Enter Code Manually
+                  </span>
+                </div>
+
+                {/* Manual Code Input Form Mode */}
+                <form onSubmit={handleManualSubmit} className="space-y-4">
+                  <div className="flex flex-col sm:flex-row items-stretch gap-3">
+                    <div className="relative flex-1">
+                      <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-taupe">
+                        <QrCode className="w-4 h-4 text-brass" />
+                      </div>
+                      <input
+                        type="text"
+                        value={manualCode}
+                        onChange={(e) => setManualCode(e.target.value)}
+                        placeholder="Enter SKU or Hangtag Code (e.g. G.569, KIANA, LN-8841)"
+                        className="w-full pl-11 pr-4 py-3.5 rounded-full bg-alabaster border border-obsidian/15 text-obsidian placeholder:text-taupe/70 text-xs focus:outline-none focus:border-obsidian focus:bg-white transition-all font-sans"
+                      />
                     </div>
 
-                    {/* Quick Demo Code Suggestions */}
-                    <div className="flex flex-wrap items-center gap-2 pt-1 text-[10.5px]">
-                      <span className="text-taupe font-light">Sample registered codes:</span>
-                      {['G.569 KIANA', 'PO-KALYANI', 'LN-2026-8841', 'GZ-70015', 'PO-SELYN'].map(
-                        (sample) => (
-                          <button
-                            key={sample}
-                            type="button"
-                            onClick={() => {
-                              setManualCode(sample);
-                              verifyCode(sample);
-                            }}
-                            className="px-2.5 py-1 rounded-full bg-alabaster hover:bg-champagne/20 text-obsidian/80 hover:text-obsidian border border-obsidian/10 transition-colors"
-                          >
-                            {sample}
-                          </button>
-                        )
+                    <button
+                      type="submit"
+                      disabled={!manualCode.trim() || isVerifying}
+                      className="px-8 py-3.5 rounded-full bg-obsidian text-alabaster text-[11px] uppercase tracking-[0.22em] font-medium hover:bg-brass disabled:opacity-50 transition-all duration-300 shadow-md shrink-0 inline-flex items-center justify-center gap-2"
+                    >
+                      {isVerifying ? (
+                        <>
+                          <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                          <span>Verifying...</span>
+                        </>
+                      ) : (
+                        <>
+                          <ShieldCheck className="w-3.5 h-3.5 text-champagne" />
+                          <span>Verify Authenticity</span>
+                        </>
                       )}
-                    </div>
-                  </form>
-                )}
+                    </button>
+                  </div>
+
+                  {/* Quick Demo Code Suggestions */}
+                  <div className="flex flex-wrap items-center gap-2 pt-1 text-[10.5px]">
+                    <span className="text-taupe font-light">Sample registered codes:</span>
+                    {['G.569 KIANA', 'PO-KALYANI', 'LN-2026-8841', 'GZ-70015', 'PO-SELYN'].map(
+                      (sample) => (
+                        <button
+                          key={sample}
+                          type="button"
+                          onClick={() => {
+                            setManualCode(sample);
+                            verifyCode(sample);
+                          }}
+                          className="px-2.5 py-1 rounded-full bg-alabaster hover:bg-champagne/20 text-obsidian/80 hover:text-obsidian border border-obsidian/10 transition-colors"
+                        >
+                          {sample}
+                        </button>
+                      )
+                    )}
+                  </div>
+                </form>
 
                 {/* Secondary Inquire Action Link */}
                 <div className="pt-2 border-t border-obsidian/10 flex items-center justify-between">
