@@ -248,13 +248,24 @@ export const CraftsmanshipSection: React.FC<CraftsmanshipSectionProps> = ({
     }
   };
 
-  const resetVerification = () => {
+  const resetVerification = useCallback(() => {
     setVerificationResult(null);
     setManualCode('');
     setCameraError(null);
     setIsScannerOpen(false);
     stopCamera();
-  };
+  }, [stopCamera]);
+
+  // Handle ESC key to dismiss modal
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && verificationResult) {
+        resetVerification();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [verificationResult, resetVerification]);
 
   return (
     <section
@@ -263,150 +274,26 @@ export const CraftsmanshipSection: React.FC<CraftsmanshipSectionProps> = ({
     >
       <div className="max-w-[1400px] mx-auto px-6 md:px-12">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center">
-          {/* Left Column: Visual Portals / Verification Passport Display (5 cols) */}
+          {/* Left Column: Visual Portals — Two Editorial Portraits with Staggered Rounded Corners */}
           <div className="lg:col-span-5">
-            {verificationResult ? (
-              /* Verified Digital Certificate Card */
-              <div className="rounded-[28px] bg-white border border-champagne/40 p-7 sm:p-8 shadow-xl relative overflow-hidden animate-fadeIn">
-                <div className="absolute top-0 right-0 w-36 h-36 bg-champagne/10 rounded-full blur-2xl pointer-events-none" />
-
-                <div className="flex items-center justify-between pb-5 border-b border-obsidian/10">
-                  <div className="flex items-center gap-2.5">
-                    <Award className="w-5 h-5 text-champagne" />
-                    <div>
-                      <p className="text-[9.5px] uppercase tracking-[0.24em] font-medium text-brass">
-                        MAISON LUNA INDONESIA
-                      </p>
-                      <h4 className="font-serif text-lg text-obsidian leading-none mt-0.5">
-                        Certificate of Authenticity &amp; Quality
-                      </h4>
-                    </div>
-                  </div>
-                  <span
-                    className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-sans font-bold uppercase tracking-wider ${
-                      verificationResult.isAuthentic
-                        ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
-                        : 'bg-rose-50 text-rose-800 border border-rose-200'
-                    }`}
-                  >
-                    {verificationResult.isAuthentic ? (
-                      <>
-                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                        <span>100% Authentic</span>
-                      </>
-                    ) : (
-                      <>
-                        <AlertCircle className="w-3.5 h-3.5 text-rose-600" />
-                        <span>Unverified</span>
-                      </>
-                    )}
-                  </span>
-                </div>
-
-                {verificationResult.isAuthentic ? (
-                  <div className="py-5 space-y-4 text-xs">
-                    <div>
-                      <span className="text-[10px] uppercase tracking-[0.2em] text-taupe block">
-                        Garment / Collection Title
-                      </span>
-                      <p className="font-sans font-bold text-base text-obsidian mt-0.5 uppercase tracking-wide">
-                        {verificationResult.title}
-                      </p>
-                      <span className="inline-block mt-1 px-2.5 py-0.5 rounded-sm bg-alabaster border border-champagne/30 text-[9px] uppercase tracking-[0.16em] font-medium text-brass">
-                        {verificationResult.grade}
-                      </span>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4 pt-2 border-t border-obsidian/10">
-                      <div>
-                        <span className="text-[10px] uppercase tracking-[0.2em] text-taupe block">
-                          House / Brand
-                        </span>
-                        <p className="font-sans font-bold text-obsidian mt-0.5">
-                          {verificationResult.brand}
-                        </p>
-                      </div>
-                      <div>
-                        <span className="text-[10px] uppercase tracking-[0.2em] text-taupe block">
-                          QC Serial Number
-                        </span>
-                        <p className="font-mono text-[11px] font-medium text-obsidian mt-0.5">
-                          {verificationResult.serialNumber}
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="pt-2 border-t border-obsidian/10">
-                      <span className="text-[10px] uppercase tracking-[0.2em] text-taupe block">
-                        Fabric &amp; Material Assurance
-                      </span>
-                      <p className="text-obsidian/80 font-light mt-0.5 leading-relaxed">
-                        {verificationResult.fabric}
-                      </p>
-                    </div>
-
-                    <div className="pt-2 border-t border-obsidian/10">
-                      <span className="text-[10px] uppercase tracking-[0.2em] text-taupe block">
-                        Atelier Origin &amp; QC Standard
-                      </span>
-                      <p className="text-obsidian/80 font-light mt-0.5 leading-relaxed">
-                        {verificationResult.origin} — {verificationResult.qcInspection}
-                      </p>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="py-6 text-center space-y-3">
-                    <AlertCircle className="w-10 h-10 text-rose-500 mx-auto" />
-                    <p className="font-sans font-bold text-base text-obsidian">
-                      Garment Code Unregistered in Registry
-                    </p>
-                    <p className="text-xs text-taupe max-w-sm mx-auto leading-relaxed">
-                      The entered code: <code className="bg-alabaster px-1 py-0.5 rounded text-obsidian">{verificationResult.code}</code> could not be identified. Please verify the garment hangtag label or consult our Atelier Concierge.
-                    </p>
-                  </div>
-                )}
-
-                <div className="pt-4 border-t border-obsidian/10 flex flex-wrap items-center justify-between gap-3">
-                  <button
-                    onClick={resetVerification}
-                    className="inline-flex items-center gap-2 text-[11px] uppercase tracking-[0.2em] text-obsidian font-medium hover:text-brass transition-colors"
-                  >
-                    <RefreshCw className="w-3.5 h-3.5" />
-                    <span>Verify Another Garment</span>
-                  </button>
-
-                  {verificationResult.isAuthentic && verificationResult.product && onSelectProduct && (
-                    <button
-                      onClick={() => onSelectProduct(verificationResult.product!)}
-                      className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-obsidian text-alabaster text-[10.5px] uppercase tracking-[0.18em] hover:bg-brass transition-colors shadow-xs"
-                    >
-                      <span>View Garment</span>
-                      <ArrowRight className="w-3 h-3" />
-                    </button>
-                  )}
-                </div>
+            <div className="grid grid-cols-12 gap-6 items-center">
+              <div className="col-span-7 rounded-[28px] overflow-hidden bg-cashmere aspect-[3/4] shadow-md border border-obsidian/[0.06] group">
+                <img
+                  src={BRAND_ASSETS.editorialAurellia}
+                  alt="Maison Luna Craftsmanship"
+                  loading="lazy"
+                  className="w-full h-full object-cover object-top transition-transform duration-700 group-hover:scale-105"
+                />
               </div>
-            ) : (
-              /* Two Editorial Portraits with Staggered Rounded Corners (Faithful to reference image) */
-              <div className="grid grid-cols-12 gap-6 items-center">
-                <div className="col-span-7 rounded-[28px] overflow-hidden bg-cashmere aspect-[3/4] shadow-md border border-obsidian/[0.06] group">
-                  <img
-                    src={BRAND_ASSETS.editorialAurellia}
-                    alt="Maison Luna Craftsmanship"
-                    loading="lazy"
-                    className="w-full h-full object-cover object-top transition-transform duration-700 group-hover:scale-105"
-                  />
-                </div>
-                <div className="col-span-5 rounded-[28px] overflow-hidden bg-cashmere aspect-[3/4] shadow-md border border-obsidian/[0.06] group translate-y-6">
-                  <img
-                    src={BRAND_ASSETS.atelierCampaign}
-                    alt="Luna Atelier Detail"
-                    loading="lazy"
-                    className="w-full h-full object-cover object-center transition-transform duration-700 group-hover:scale-105"
-                  />
-                </div>
+              <div className="col-span-5 rounded-[28px] overflow-hidden bg-cashmere aspect-[3/4] shadow-md border border-obsidian/[0.06] group translate-y-6">
+                <img
+                  src={BRAND_ASSETS.atelierCampaign}
+                  alt="Luna Atelier Detail"
+                  loading="lazy"
+                  className="w-full h-full object-cover object-center transition-transform duration-700 group-hover:scale-105"
+                />
               </div>
-            )}
+            </div>
           </div>
 
           {/* Right Column: Narrative + Verification Section (7 cols) */}
@@ -615,6 +502,160 @@ export const CraftsmanshipSection: React.FC<CraftsmanshipSectionProps> = ({
           </div>
         </div>
       </div>
+
+      {/* Certificate of Authenticity & Quality Popup Modal */}
+      {verificationResult && (
+        <div
+          className="fixed inset-0 z-50 bg-obsidian/60 backdrop-blur-md flex items-center justify-center p-4 sm:p-6 animate-fadeIn"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              resetVerification();
+            }
+          }}
+        >
+          <div
+            className="relative w-full max-w-lg rounded-[28px] bg-white border border-champagne/40 p-7 sm:p-9 shadow-2xl overflow-hidden animate-scaleIn"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Ambient luxury glow accent */}
+            <div className="absolute top-0 right-0 w-48 h-48 bg-champagne/15 rounded-full blur-3xl pointer-events-none" />
+
+            {/* Close button X */}
+            <button
+              type="button"
+              onClick={resetVerification}
+              title="Close Certificate"
+              className="absolute top-5 right-5 w-8 h-8 rounded-full bg-alabaster hover:bg-obsidian hover:text-white text-obsidian/60 flex items-center justify-center transition-colors"
+            >
+              <X className="w-4 h-4" />
+            </button>
+
+            {/* Top Header */}
+            <div className="flex items-start justify-between pb-5 border-b border-obsidian/10 pr-8">
+              <div className="flex items-start gap-3">
+                <Award className="w-6 h-6 text-champagne shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-[9.5px] uppercase tracking-[0.24em] font-medium text-brass">
+                    MAISON LUNA INDONESIA
+                  </p>
+                  <h4 className="font-serif text-xl sm:text-2xl text-obsidian leading-snug mt-0.5">
+                    Certificate of Authenticity &amp; Quality
+                  </h4>
+                </div>
+              </div>
+
+              <span
+                className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-sans font-bold uppercase tracking-wider shrink-0 mt-1 ${
+                  verificationResult.isAuthentic
+                    ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
+                    : 'bg-rose-50 text-rose-800 border border-rose-200'
+                }`}
+              >
+                {verificationResult.isAuthentic ? (
+                  <>
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                    <span>100% Authentic</span>
+                  </>
+                ) : (
+                  <>
+                    <AlertCircle className="w-3.5 h-3.5 text-rose-600" />
+                    <span>Unverified</span>
+                  </>
+                )}
+              </span>
+            </div>
+
+            {verificationResult.isAuthentic ? (
+              <div className="py-5 space-y-4 text-xs">
+                <div>
+                  <span className="text-[10px] uppercase tracking-[0.2em] text-taupe block font-medium">
+                    Garment / Collection Title
+                  </span>
+                  <p className="font-sans font-bold text-lg sm:text-xl text-obsidian mt-1 uppercase tracking-wide">
+                    {verificationResult.title}
+                  </p>
+                  <span className="inline-block mt-1.5 px-2.5 py-0.5 rounded-sm bg-alabaster border border-champagne/40 text-[9px] uppercase tracking-[0.18em] font-medium text-brass">
+                    {verificationResult.grade}
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4 pt-3 border-t border-obsidian/10">
+                  <div>
+                    <span className="text-[10px] uppercase tracking-[0.2em] text-taupe block font-medium">
+                      House / Brand
+                    </span>
+                    <p className="font-sans font-bold text-sm text-obsidian mt-0.5">
+                      {verificationResult.brand}
+                    </p>
+                  </div>
+                  <div>
+                    <span className="text-[10px] uppercase tracking-[0.2em] text-taupe block font-medium">
+                      QC Serial Number
+                    </span>
+                    <p className="font-mono text-xs font-semibold text-obsidian mt-0.5 tracking-wider">
+                      {verificationResult.serialNumber}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="pt-3 border-t border-obsidian/10">
+                  <span className="text-[10px] uppercase tracking-[0.2em] text-taupe block font-medium">
+                    Fabric &amp; Material Assurance
+                  </span>
+                  <p className="text-obsidian/85 font-normal mt-1 leading-relaxed text-xs">
+                    {verificationResult.fabric}
+                  </p>
+                </div>
+
+                <div className="pt-3 border-t border-obsidian/10">
+                  <span className="text-[10px] uppercase tracking-[0.2em] text-taupe block font-medium">
+                    Atelier Origin &amp; QC Standard
+                  </span>
+                  <p className="text-obsidian/80 font-light mt-1 leading-relaxed text-xs">
+                    {verificationResult.origin} — {verificationResult.qcInspection}
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <div className="py-6 text-center space-y-3">
+                <AlertCircle className="w-10 h-10 text-rose-500 mx-auto" />
+                <p className="font-sans font-bold text-base text-obsidian">
+                  Garment Code Unregistered in Registry
+                </p>
+                <p className="text-xs text-taupe max-w-sm mx-auto leading-relaxed">
+                  The entered code: <code className="bg-alabaster px-1.5 py-0.5 rounded text-obsidian font-mono">{verificationResult.code}</code> could not be identified in the Kudus atelier database. Please verify your hangtag label or consult concierge assistance.
+                </p>
+              </div>
+            )}
+
+            {/* Modal Actions */}
+            <div className="pt-4 border-t border-obsidian/10 flex flex-wrap items-center justify-between gap-3">
+              <button
+                type="button"
+                onClick={resetVerification}
+                className="inline-flex items-center gap-2 text-[11px] uppercase tracking-[0.2em] text-obsidian font-medium hover:text-brass transition-colors"
+              >
+                <RefreshCw className="w-3.5 h-3.5" />
+                <span>Verify Another Garment</span>
+              </button>
+
+              {verificationResult.isAuthentic && verificationResult.product && onSelectProduct && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    onSelectProduct(verificationResult.product!);
+                    resetVerification();
+                  }}
+                  className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-full bg-obsidian text-alabaster text-[10.5px] uppercase tracking-[0.18em] font-medium hover:bg-brass transition-colors shadow-xs"
+                >
+                  <span>View Garment</span>
+                  <ArrowRight className="w-3 h-3" />
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   );
 };
