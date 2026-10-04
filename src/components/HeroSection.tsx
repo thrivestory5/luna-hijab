@@ -46,7 +46,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
                 onClick={onExploreArchive}
                 className="inline-flex items-center gap-3 px-8 py-4 rounded-full bg-obsidian text-alabaster text-[11px] uppercase tracking-[0.22em] font-medium hover:bg-brass transition-all duration-300 shadow-md"
               >
-                <span>Lihat Katalog (72 Pieces)</span>
+                <span>Lihat Katalog</span>
                 <ArrowRight className="w-3.5 h-3.5 text-champagne" />
               </button>
 
@@ -108,7 +108,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
                 </h2>
                 <div className="mt-2.5 pt-2.5 border-t border-obsidian/10 flex items-center justify-between text-[11px]">
                   <span className="font-sans font-bold text-sm text-obsidian tracking-tight">
-                    {featuredProducts[0]?.formattedPrice || '41 Pieces'}
+                    {featuredProducts[0]?.formattedPrice || 'Atelier Collection'}
                   </span>
                   <span className="text-taupe group-hover:text-obsidian">Detail →</span>
                 </div>
@@ -142,7 +142,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
                   </h2>
                   <div className="mt-2 pt-2 border-t border-obsidian/10 flex items-center justify-between text-[10.5px]">
                     <span className="font-sans font-bold text-xs sm:text-sm text-obsidian tracking-tight">
-                      {featuredProducts[1]?.formattedPrice || '41 Pieces'}
+                      {featuredProducts[1]?.formattedPrice || 'Atelier Reserve'}
                     </span>
                     <span className="text-taupe group-hover:text-obsidian">Detail →</span>
                   </div>

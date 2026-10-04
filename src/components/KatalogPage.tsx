@@ -177,11 +177,11 @@ export const KatalogPage: React.FC<KatalogPageProps> = ({
           {/* Brand Filter Pills */}
           <div className="flex flex-wrap items-center gap-2">
             {[
-              { id: 'ALL', label: `Semua Koleksi (${brandCounts.all})` },
-              { id: 'Luna', label: `Luna Couture (${brandCounts.luna})` },
-              { id: 'Kemayu', label: `Kemayu Heritage (${brandCounts.kemayu})` },
-              { id: 'GZ', label: `GZ Tailoring (${brandCounts.gz})` },
-              { id: 'WISHLIST', label: `Saved Wishlist (${brandCounts.wishlist})` },
+              { id: 'ALL', label: 'Semua Koleksi' },
+              { id: 'Luna', label: 'Luna Couture' },
+              { id: 'Kemayu', label: 'Kemayu Heritage' },
+              { id: 'GZ', label: 'GZ Tailoring' },
+              { id: 'WISHLIST', label: 'Saved Wishlist' },
             ].map((tab) => {
               const active = activeBrand === tab.id;
               return (

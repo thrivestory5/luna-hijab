@@ -100,22 +100,22 @@ export const Footer: React.FC<FooterProps> = ({ onSelectBrand, onOpenConcierge, 
               <ul className="space-y-2 text-xs font-light text-obsidian/75">
                 <li>
                   <button onClick={() => handleBrandJump('Luna')} className="hover:text-obsidian">
-                    Luna Couture (41)
+                    Luna Couture
                   </button>
                 </li>
                 <li>
                   <button onClick={() => handleBrandJump('Kemayu')} className="hover:text-obsidian">
-                    Kemayu (10)
+                    Kemayu
                   </button>
                 </li>
                 <li>
                   <button onClick={() => handleBrandJump('GZ')} className="hover:text-obsidian">
-                    GZ Tailoring (21)
+                    GZ Tailoring
                   </button>
                 </li>
                 <li>
                   <button onClick={() => handleBrandJump('ALL')} className="hover:text-obsidian">
-                    View All (72)
+                    View All
                   </button>
                 </li>
               </ul>

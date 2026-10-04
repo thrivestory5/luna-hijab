@@ -356,7 +356,7 @@ export function App() {
                   ARCHIVE CATALOGUE
                 </span>
                 <h2 className="font-serif text-3xl sm:text-4xl text-obsidian font-normal">
-                  Jelajahi Seluruh 72 Mahakarya Busana Muslimah
+                  Jelajahi Seluruh Mahakarya Busana Muslimah
                 </h2>
                 <p className="text-xs sm:text-sm text-taupe font-light max-w-xl mx-auto leading-relaxed">
                   Temukan koleksi lengkap Luna Couture, Kemayu Heritage, dan GZ Tailoring dengan filter warna, material sutra premium, dan panduan ukuran eksklusif.

@@ -260,11 +260,11 @@ export const Navbar: React.FC<NavbarProps> = ({
               Beranda
             </button>
             {[
-              { title: 'Katalog Koleksi (72)', val: 'ALL' },
-              { title: 'Luna Couture (41)', val: 'Luna' },
-              { title: 'Kemayu Heritage (10)', val: 'Kemayu' },
-              { title: 'GZ Tailoring (21)', val: 'GZ' },
-              { title: `Saved Wishlist (${wishlistCount})`, val: 'WISHLIST' },
+              { title: 'Katalog Koleksi', val: 'ALL' },
+              { title: 'Luna Couture', val: 'Luna' },
+              { title: 'Kemayu Heritage', val: 'Kemayu' },
+              { title: 'GZ Tailoring', val: 'GZ' },
+              { title: 'Saved Wishlist', val: 'WISHLIST' },
             ].map((item) => (
               <button
                 key={item.val}
