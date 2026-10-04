@@ -43,7 +43,7 @@ export const Footer: React.FC<FooterProps> = ({ onSelectBrand, onOpenConcierge, 
                 Member Society
               </h2>
               <p className="text-xs sm:text-sm text-alabaster/75 font-light leading-relaxed">
-                Enjoy private pre-order access to new Luna Couture, Kemayu, and GZ releases,
+                Enjoy private pre-order access to new Luna, Kemayu, and GZ releases,
                 exclusive member pricing, and personalized styling via our Kudus VIP WhatsApp
                 Concierge.
               </p>
@@ -100,7 +100,7 @@ export const Footer: React.FC<FooterProps> = ({ onSelectBrand, onOpenConcierge, 
               <ul className="space-y-2 text-xs font-light text-obsidian/75">
                 <li>
                   <button onClick={() => handleBrandJump('Luna')} className="hover:text-obsidian">
-                    Luna Couture
+                    Luna
                   </button>
                 </li>
                 <li>
@@ -110,7 +110,7 @@ export const Footer: React.FC<FooterProps> = ({ onSelectBrand, onOpenConcierge, 
                 </li>
                 <li>
                   <button onClick={() => handleBrandJump('GZ')} className="hover:text-obsidian">
-                    GZ Tailoring
+                    GZ
                   </button>
                 </li>
                 <li>

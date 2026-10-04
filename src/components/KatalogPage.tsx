@@ -134,9 +134,9 @@ export const KatalogPage: React.FC<KatalogPageProps> = ({
               <p className="text-xs sm:text-sm text-taupe font-light leading-relaxed">
                 Jelajahi {products.length} karya busana modest couture eksklusif dengan material terbaik
                 dan desain timeless across tiga rumah mode:{' '}
-                <strong className="font-medium text-obsidian">Luna Couture</strong>,{' '}
-                <strong className="font-medium text-obsidian">Kemayu Heritage</strong>, dan{' '}
-                <strong className="font-medium text-obsidian">GZ Tailoring</strong>.
+                <strong className="font-medium text-obsidian">Luna</strong>,{' '}
+                <strong className="font-medium text-obsidian">Kemayu</strong>, dan{' '}
+                <strong className="font-medium text-obsidian">GZ</strong>.
               </p>
             </div>
 
@@ -178,9 +178,9 @@ export const KatalogPage: React.FC<KatalogPageProps> = ({
           <div className="flex flex-wrap items-center gap-2">
             {[
               { id: 'ALL', label: 'Semua Koleksi' },
-              { id: 'Luna', label: 'Luna Couture' },
-              { id: 'Kemayu', label: 'Kemayu Heritage' },
-              { id: 'GZ', label: 'GZ Tailoring' },
+              { id: 'Luna', label: 'Luna' },
+              { id: 'Kemayu', label: 'Kemayu' },
+              { id: 'GZ', label: 'GZ' },
               { id: 'WISHLIST', label: 'Saved Wishlist' },
             ].map((tab) => {
               const active = activeBrand === tab.id;

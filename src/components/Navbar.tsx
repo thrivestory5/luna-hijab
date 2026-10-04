@@ -261,9 +261,9 @@ export const Navbar: React.FC<NavbarProps> = ({
             </button>
             {[
               { title: 'Katalog Koleksi', val: 'ALL' },
-              { title: 'Luna Couture', val: 'Luna' },
-              { title: 'Kemayu Heritage', val: 'Kemayu' },
-              { title: 'GZ Tailoring', val: 'GZ' },
+              { title: 'Luna', val: 'Luna' },
+              { title: 'Kemayu', val: 'Kemayu' },
+              { title: 'GZ', val: 'GZ' },
               { title: 'Saved Wishlist', val: 'WISHLIST' },
             ].map((item) => (
               <button

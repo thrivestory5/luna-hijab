@@ -359,7 +359,7 @@ export function App() {
                   Jelajahi Seluruh Mahakarya Busana Muslimah
                 </h2>
                 <p className="text-xs sm:text-sm text-taupe font-light max-w-xl mx-auto leading-relaxed">
-                  Temukan koleksi lengkap Luna Couture, Kemayu Heritage, dan GZ Tailoring dengan filter warna, material sutra premium, dan panduan ukuran eksklusif.
+                  Temukan koleksi lengkap Luna, Kemayu, dan GZ dengan filter warna, material sutra premium, dan panduan ukuran eksklusif.
                 </p>
                 <div className="pt-2">
                   <button
