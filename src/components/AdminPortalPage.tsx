@@ -8,6 +8,7 @@ import {
   Shield,
   Lock,
   User,
+  Mail,
   CheckCircle2,
   Sparkles,
   ArrowLeft,
@@ -75,7 +76,7 @@ export const AdminPortalPage: React.FC<AdminPortalPageProps> = ({
   const [selectedProductForQR, setSelectedProductForQR] = useState<Product | null>(null);
 
   // Login form state
-  const [identifier, setIdentifier] = useState('admin');
+  const [identifier, setIdentifier] = useState('admin@lunahijab.co.id');
   const [password, setPassword] = useState('admin123');
   const [loginLoading, setLoginLoading] = useState(false);
   const [loginError, setLoginError] = useState('');
@@ -132,7 +133,7 @@ export const AdminPortalPage: React.FC<AdminPortalPageProps> = ({
     e.preventDefault();
     setLoginError('');
     if (!identifier.trim() || !password) {
-      setLoginError('Please enter admin credentials.');
+      setLoginError('Please enter your admin email and password.');
       return;
     }
 
@@ -157,7 +158,7 @@ export const AdminPortalPage: React.FC<AdminPortalPageProps> = ({
     setLoginLoading(true);
     setLoginError('');
     try {
-      const res = await loginAdminAccount('admin', 'admin123');
+      const res = await loginAdminAccount('admin@lunahijab.co.id', 'admin123');
       if (res.data) {
         onAdminLoginSuccess(res.data);
         handleNavigateSubroute('dashboard');
@@ -165,7 +166,7 @@ export const AdminPortalPage: React.FC<AdminPortalPageProps> = ({
         // Fallback demo profile
         const demo: AdminProfile = {
           id: 'c97cc0e3-a683-4a4e-adcb-b7549234744d',
-          username: 'admin',
+          username: 'admin@lunahijab.co.id',
           email: 'admin@lunahijab.co.id',
           full_name: 'Maison Luna Executive',
           created_at: new Date().toISOString(),
@@ -176,7 +177,7 @@ export const AdminPortalPage: React.FC<AdminPortalPageProps> = ({
     } catch {
       const demo: AdminProfile = {
         id: 'c97cc0e3-a683-4a4e-adcb-b7549234744d',
-        username: 'admin',
+        username: 'admin@lunahijab.co.id',
         email: 'admin@lunahijab.co.id',
         full_name: 'Maison Luna Executive',
         created_at: new Date().toISOString(),
@@ -260,16 +261,16 @@ export const AdminPortalPage: React.FC<AdminPortalPageProps> = ({
             <form onSubmit={handleAdminSubmit} className="space-y-4">
               <div>
                 <label className="block text-[10px] uppercase tracking-[0.22em] text-taupe mb-1.5 font-medium">
-                  Admin Username / Email
+                  Admin Email Address *
                 </label>
                 <div className="relative">
-                  <User className="w-4 h-4 text-taupe absolute left-3.5 top-1/2 -translate-y-1/2" />
+                  <Mail className="w-4 h-4 text-taupe absolute left-3.5 top-1/2 -translate-y-1/2" />
                   <input
-                    type="text"
+                    type="email"
                     required
                     value={identifier}
                     onChange={(e) => setIdentifier(e.target.value)}
-                    placeholder="admin or admin@lunahijab.co.id"
+                    placeholder="admin@lunahijab.co.id"
                     className="w-full pl-10 pr-4 py-3 rounded-xl bg-alabaster border border-obsidian/15 text-xs text-obsidian focus:outline-none focus:border-obsidian"
                   />
                 </div>

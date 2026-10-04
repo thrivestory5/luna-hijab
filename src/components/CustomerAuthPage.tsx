@@ -342,7 +342,7 @@ export const CustomerAuthPage: React.FC<CustomerAuthPageProps> = ({
 
     const cleanEmail = loginEmail.trim().toLowerCase();
     if (!EMAIL_REGEX.test(cleanEmail)) {
-      setErrorMsg('Username harus berupa format email yang valid (contoh: nama@email.com).');
+      setErrorMsg('Format email tidak valid (contoh: nama@email.com).');
       return;
     }
     if (!loginPassword) {
@@ -375,7 +375,7 @@ export const CustomerAuthPage: React.FC<CustomerAuthPageProps> = ({
       return;
     }
     if (!EMAIL_REGEX.test(cleanEmail)) {
-      setErrorMsg('Format email tidak valid. Email akan digunakan sebagai username login.');
+      setErrorMsg('Format email tidak valid (contoh: nama@email.com).');
       return;
     }
     if (password.length < 6) {
@@ -533,7 +533,7 @@ export const CustomerAuthPage: React.FC<CustomerAuthPageProps> = ({
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
               <div className="p-3.5 rounded-2xl bg-alabaster">
                 <p className="text-[9.5px] uppercase tracking-[0.2em] text-taupe">
-                  Email (Username)
+                  Alamat Email
                 </p>
                 <p className="text-obsidian font-medium mt-1">{currentUser.email}</p>
               </div>
@@ -609,13 +609,13 @@ export const CustomerAuthPage: React.FC<CustomerAuthPageProps> = ({
                 <div>
                   <h2 className="font-serif text-3xl text-obsidian">Masuk ke Akun Anda</h2>
                   <p className="text-xs text-taupe font-light mt-1">
-                    Gunakan alamat email Anda sebagai username untuk masuk.
+                    Gunakan alamat email Anda untuk masuk ke akun member.
                   </p>
                 </div>
 
                 <div>
                   <label className="block text-[10px] uppercase tracking-[0.22em] text-taupe mb-1.5">
-                    Email (Username) *
+                    Alamat Email *
                   </label>
                   <div className="relative">
                     <Mail className="w-4 h-4 text-taupe absolute left-3.5 top-1/2 -translate-y-1/2" />
@@ -677,7 +677,7 @@ export const CustomerAuthPage: React.FC<CustomerAuthPageProps> = ({
                       Registrasi Member Baru
                     </h2>
                     <p className="text-xs text-taupe font-light mt-0.5">
-                      Email Anda akan menjadi username untuk login.
+                      Gunakan alamat email aktif Anda untuk pendaftaran akun.
                     </p>
                   </div>
 
@@ -737,7 +737,7 @@ export const CustomerAuthPage: React.FC<CustomerAuthPageProps> = ({
 
                   <div>
                     <label className="block text-[10px] uppercase tracking-[0.2em] text-taupe mb-1">
-                      Email (Username Login) *
+                      Alamat Email *
                     </label>
                     <div className="relative">
                       <Mail className="w-3.5 h-3.5 text-taupe absolute left-3.5 top-1/2 -translate-y-1/2" />

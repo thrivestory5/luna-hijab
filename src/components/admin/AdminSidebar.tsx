@@ -212,7 +212,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
               {adminUser.full_name}
             </p>
             <p className="text-[10px] text-champagne/70 font-mono truncate">
-              @{adminUser.username}
+              {adminUser.email || adminUser.username}
             </p>
           </div>
         </div>
