@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import QRCode from 'qrcode';
+import { toPng } from 'html-to-image';
 import {
   QrCode,
   Download,
@@ -267,7 +268,34 @@ export const AdminBrandQRMaker: React.FC<AdminBrandQRMakerProps> = ({
   const handleDownloadHangtagCard = async () => {
     setDownloadingCard(true);
     try {
-      // 1. Prepare QR code image
+      const gSku = activeProduct?.sku || customSku;
+
+      // 1. Direct pixel-perfect snapshot of the preview card
+      // This produces the EXACT 1:1 identical reproduction of the preview card with the gold border!
+      if (hangtagCardRef.current) {
+        try {
+          const dataUrl = await toPng(hangtagCardRef.current, {
+            cacheBust: true,
+            pixelRatio: 3, // Ultra-high 1020px print resolution
+            style: {
+              margin: '0',
+              transform: 'none',
+              boxShadow: 'inset 0 0 40px rgba(0,0,0,0.5)', // retains inner luxury glow, removes outer drop shadow
+            },
+          });
+          const link = document.createElement('a');
+          link.href = dataUrl;
+          link.download = `Hangtag_${selectedBrand}_${gSku}_${serialNumber}.png`;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          return;
+        } catch (domErr) {
+          console.warn('DOM snapshot failed, falling back to canvas generator', domErr);
+        }
+      }
+
+      // 2. Prepare QR code image for fallback canvas
       let targetQr = qrDataUrl;
       if (!targetQr) {
         targetQr = await QRCode.toDataURL(verificationUrl, {
@@ -301,7 +329,6 @@ export const AdminBrandQRMaker: React.FC<AdminBrandQRMakerProps> = ({
       if (!mCtx) return;
 
       const gName = activeProduct?.name || customName;
-      const gSku = activeProduct?.sku || customSku;
       const gFabric = activeProduct?.fabric || customFabric;
 
       mCtx.font = 'bold 24px "Playfair Display", Georgia, serif';
@@ -955,6 +982,7 @@ export const AdminBrandQRMaker: React.FC<AdminBrandQRMakerProps> = ({
                 <img
                   src={BRAND_ASSETS.logoCompact}
                   alt={selectedBrand}
+                  crossOrigin="anonymous"
                   className="h-8 w-auto filter drop-shadow-md brightness-110"
                 />
               </div>
