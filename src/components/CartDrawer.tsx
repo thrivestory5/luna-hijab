@@ -109,7 +109,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                 <div className="flex-1 flex flex-col justify-between">
                   <div>
                     <div className="flex items-start justify-between gap-2">
-                      <h3 className="font-serif text-lg text-obsidian">{item.product.name}</h3>
+                      <h3 className="font-sans font-bold text-sm text-obsidian uppercase tracking-wide">{item.product.name}</h3>
                       <button
                         onClick={() => onRemoveItem(item.key)}
                         className="text-[10px] uppercase tracking-widest text-taupe hover:text-obsidian"
@@ -141,7 +141,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                       </button>
                     </div>
 
-                    <span className="text-xs font-normal text-obsidian">
+                    <span className="font-sans font-bold text-xs text-obsidian tracking-tight">
                       Rp {(item.product.price * item.quantity).toLocaleString('id-ID')}
                     </span>
                   </div>

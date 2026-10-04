@@ -352,7 +352,7 @@ export const KatalogPage: React.FC<KatalogPageProps> = ({
                         {getCategoryTag(product)}
                       </p>
 
-                      <h3 className="font-serif text-[1.35rem] leading-snug font-normal text-obsidian mt-1 group-hover:text-brass transition-colors">
+                      <h3 className="font-sans font-bold text-base sm:text-lg leading-snug text-obsidian mt-1 uppercase tracking-wide group-hover:text-brass transition-colors">
                         {product.rawName}
                       </h3>
 
@@ -406,7 +406,7 @@ export const KatalogPage: React.FC<KatalogPageProps> = ({
 
                     {/* Price and Action Row */}
                     <div className="mt-4 pt-3.5 border-t border-obsidian/10 flex items-center justify-between">
-                      <span className="font-serif text-[1.05rem] font-semibold tracking-tight text-obsidian">
+                      <span className="font-sans font-bold text-[1.05rem] tracking-tight text-obsidian">
                         {product.formattedPrice}
                       </span>
 

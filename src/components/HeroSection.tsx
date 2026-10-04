@@ -103,11 +103,11 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
                 <p className="text-[9px] font-medium uppercase tracking-[0.18em] text-champagne">
                   AUTUMN / WINTER ’26
                 </p>
-                <h2 className="font-serif text-lg text-obsidian mt-0.5">
+                <h2 className="font-sans font-bold text-base md:text-lg text-obsidian mt-0.5 uppercase tracking-wide">
                   {featuredProducts[0]?.rawName || 'Luna Signature'}
                 </h2>
                 <div className="mt-2.5 pt-2.5 border-t border-obsidian/10 flex items-center justify-between text-[11px]">
-                  <span className="font-serif font-semibold text-obsidian">
+                  <span className="font-sans font-bold text-sm text-obsidian tracking-tight">
                     {featuredProducts[0]?.formattedPrice || '41 Pieces'}
                   </span>
                   <span className="text-taupe group-hover:text-obsidian">Detail →</span>
@@ -137,11 +137,11 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
                   <p className="text-[8.5px] font-medium uppercase tracking-[0.18em] text-champagne">
                     SIGNATURE SERIES
                   </p>
-                  <h2 className="font-serif text-base text-obsidian mt-0.5">
+                  <h2 className="font-sans font-bold text-sm md:text-base text-obsidian mt-0.5 uppercase tracking-wide">
                     {featuredProducts[1]?.rawName || 'Luna Reserve'}
                   </h2>
                   <div className="mt-2 pt-2 border-t border-obsidian/10 flex items-center justify-between text-[10.5px]">
-                    <span className="font-serif font-semibold text-obsidian">
+                    <span className="font-sans font-bold text-xs sm:text-sm text-obsidian tracking-tight">
                       {featuredProducts[1]?.formattedPrice || '41 Pieces'}
                     </span>
                     <span className="text-taupe group-hover:text-obsidian">Detail →</span>
