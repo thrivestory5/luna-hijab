@@ -203,19 +203,6 @@ export const Footer: React.FC<FooterProps> = ({ onSelectBrand, onOpenConcierge, 
                   GZ
                 </button>
               </div>
-              {onNavigate && (
-                <>
-                  <span className="text-obsidian/30">•</span>
-                  <button
-                    type="button"
-                    onClick={() => onNavigate('/admin')}
-                    className="hover:text-obsidian transition-colors cursor-pointer text-taupe/60"
-                    title="Maison Atelier Admin Panel"
-                  >
-                    Atelier Admin
-                  </button>
-                </>
-              )}
             </div>
           </div>
         </div>
